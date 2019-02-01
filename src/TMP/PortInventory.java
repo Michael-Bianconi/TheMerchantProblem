@@ -36,17 +36,17 @@ public class PortInventory {
     /**
      * The amount of the Commodity currently on hand.
      */
-    public final int ON_HAND;
+    public int ON_HAND;
 
     /**
      * The amount of gold it costs to buy this Commodity from the port.
      */
-    public final int BUY_PRICE;
+    public int BUY_PRICE;
 
     /**
      * The amount of gold the Port will give you in exchange.
      */
-    public final int SELL_PRICE;
+    public int SELL_PRICE;
 
     /**
      * Creates the port table if it doesn't already exist.
@@ -234,13 +234,7 @@ public class PortInventory {
         this.SELL_PRICE = sell;
     }
 
-    /**
-     * Hashes the Port's ID and NAME.
-     */
-    public int hashCode() {
-        return Objects.hash(ID, PORT_ID, COMMODITY_ID,
-                ON_HAND, BUY_PRICE, SELL_PRICE);
-    }
+    public int hashCode() { return Objects.hash(ID, PORT_ID, COMMODITY_ID); }
 
     public boolean equals(Object o) {
         if (!(o instanceof PortInventory)) {
@@ -249,10 +243,7 @@ public class PortInventory {
         PortInventory p = (PortInventory) o;
         return p.ID == ID
                 && p.PORT_ID == PORT_ID
-                && p.COMMODITY_ID == COMMODITY_ID
-                && p.ON_HAND == ON_HAND
-                && p.BUY_PRICE == BUY_PRICE
-                && p.SELL_PRICE == SELL_PRICE;
+                && p.COMMODITY_ID == COMMODITY_ID;
     }
 
     public String toString() {

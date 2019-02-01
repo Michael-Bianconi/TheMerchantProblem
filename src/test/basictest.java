@@ -19,20 +19,25 @@ public class basictest {
             Class.forName(JDBC_DRIVER);
 
             Commodity.createTable(conn);
-            Commodity gold = new Commodity(0, "Gold", 0);
-            Commodity meat = new Commodity(1, "Meat", 1);
-            Commodity furs = new Commodity(2,"Furs",5.7f);
-            gold.store(conn);
-            meat.store(conn);
-            furs.store(conn);
+            Commodity commodityList[] = {
+                    new Commodity(0, "Gold", 0),
+                    new Commodity(1, "Meat", 1),
+                    new Commodity(2,"Furs",5.7f)
+            };
+            for (Commodity c : commodityList) {
+                c.store(conn);
+            }
 
             Port.createTable(conn);
-            Port nassau = new Port(0,"Nassau");
-            Port sanJuan = new Port(1,"San Juan");
-            Port antigua = new Port(2,"Antigua");
-            nassau.store(conn);
-            sanJuan.store(conn);
-            antigua.store(conn);
+            Port portList[] = {
+                    new Port(0,"Nassau"),
+                    new Port(1,"San Juan"),
+                    new Port(2,"Antigua")
+            };
+            for (Port p : portList)
+            {
+                p.store(conn);
+            }
 
             PortInventory.createTable(conn);
             PortInventory nassauMeat = new PortInventory(0,0,1,10,15,100);
@@ -64,6 +69,17 @@ public class basictest {
             r2.store(conn);
             r3.store(conn);
 
+            Merchant.createTable(conn);
+            Merchant merchantList[] = {
+                    new Merchant(0, "Mike", 0,0,100),
+                    new Merchant(1, "Niamh",1,0,420),
+                    new Merchant(2,"Cortez", 1,2,24)
+            };
+            for (Merchant m : merchantList)
+            {
+                m.store(conn);
+            }
+
             Map<Integer, Commodity> commodities = Commodity.retrieveAll(conn);
 
             for (Map.Entry<Integer, Commodity> e : commodities.entrySet()) {
@@ -76,13 +92,13 @@ public class basictest {
                 System.out.println(e.getValue());
             }
 
-            Map<Integer, PortInventory> invs = nassau.retrievePortInventories(conn);
+            Map<Integer, PortInventory> invs = PortInventory.retrieveAll(conn);
 
             for (Map.Entry<Integer, PortInventory> e : invs.entrySet()) {
                 System.out.println(e.getValue());
             }
 
-            Map<Integer, Route> routes = nassau.retrieveRoutesOut(conn);
+            Map<Integer, Route> routes = Route.retrieveAll(conn);
 
             for (Map.Entry<Integer, Route> e : routes.entrySet()) {
                 System.out.println(e.getValue());
@@ -91,6 +107,12 @@ public class basictest {
             Map<Integer, RouteCost> costs = NtoA.retrieveRouteCosts(conn);
 
             for (Map.Entry<Integer, RouteCost> e : costs.entrySet()) {
+                System.out.println(e.getValue());
+            }
+
+            Map<Integer, Merchant> merchant = Merchant.retrieveAll(conn);
+
+            for (Map.Entry<Integer, Merchant> e : merchant.entrySet()) {
                 System.out.println(e.getValue());
             }
 
