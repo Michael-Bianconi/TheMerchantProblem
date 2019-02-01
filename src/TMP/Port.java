@@ -152,6 +152,39 @@ public class Port {
         return map;
     }
 
+    /**
+     * Retrieves every Route with this Port as its Start Port.
+     * @param conn Connection to the database.
+     * @return Returns a Map linking each RouteID to its Route.
+     */
+    public HashMap<Integer, Route> retrieveRoutesOut(
+            Connection conn){
+
+        // Initialize variables
+        String sqlCommand = "SELECT * FROM " + Route.TABLE_NAME +
+                " WHERE START_PORT="+ID+";";
+        HashMap<Integer, Route> map = new HashMap<>();
+
+        // Execute the statement
+        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
+
+            // Get each field. If there's more than one row, something's wrong.
+            ResultSet set = stmt.executeQuery();
+            while (set.next()) {
+
+                int id = set.getInt("ID");
+                int start = set.getInt("START_PORT");
+                int end = set.getInt("END_PORT");
+                map.put(id, new Route(id,start,end));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return map;
+    }
+
 
     /**
      * Stores this Port into the database. Will replace the old

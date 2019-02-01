@@ -1,9 +1,6 @@
 package test;
 
-import TMP.Commodity;
-import TMP.Port;
-import TMP.PortInventory;
-import TMP.Route;
+import TMP.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -57,6 +54,16 @@ public class basictest {
             StoA.store(conn);
             AtoN.store(conn);
 
+            RouteCost.createTable(conn);
+            RouteCost r0 = new RouteCost(0,0,0,100);
+            RouteCost r1 = new RouteCost(1,1,1,5);
+            RouteCost r2 = new RouteCost(2,1,2,3);
+            RouteCost r3 = new RouteCost(3,2,0,50);
+            r0.store(conn);
+            r1.store(conn);
+            r2.store(conn);
+            r3.store(conn);
+
             Map<Integer, Commodity> commodities = Commodity.retrieveAll(conn);
 
             for (Map.Entry<Integer, Commodity> e : commodities.entrySet()) {
@@ -75,9 +82,15 @@ public class basictest {
                 System.out.println(e.getValue());
             }
 
-            Map<Integer, Route> routes = Route.retrieveAll(conn);
+            Map<Integer, Route> routes = nassau.retrieveRoutesOut(conn);
 
             for (Map.Entry<Integer, Route> e : routes.entrySet()) {
+                System.out.println(e.getValue());
+            }
+
+            Map<Integer, RouteCost> costs = NtoA.retrieveRouteCosts(conn);
+
+            for (Map.Entry<Integer, RouteCost> e : costs.entrySet()) {
                 System.out.println(e.getValue());
             }
 

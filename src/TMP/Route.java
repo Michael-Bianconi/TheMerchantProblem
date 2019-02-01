@@ -141,14 +141,37 @@ public class Route {
     }
 
     /**
-     * Returns the Start Port associated with this Route.
-     *
+     * Retrieves all RouteCosts associated with this Route.
      * @param conn Connection to the database.
-     * @return Returns the Commodity referenced by this PortInventory.
+     * @return Returns a Map of all RouteCosts associated with this Route.
      */
-    public Port retrieveStartPort(Connection conn) {
+    public HashMap<Integer, RouteCost> retrieveRouteCosts(Connection conn)
+    {
+        // Initialize variables
+        String sqlCommand = "SELECT * FROM " + RouteCost.TABLE_NAME +
+                " WHERE ROUTE_ID="+ID+";";
+        HashMap<Integer, RouteCost> map = new HashMap<>();
 
-        return Port.retrieve(START_PORT, conn);
+        // Execute the statement
+        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
+
+            // Get each field. If there's more than one row, something's wrong.
+            ResultSet set = stmt.executeQuery();
+            while (set.next()) {
+
+                int id = set.getInt("ID");
+                int pID = set.getInt("ROUTE_ID");
+                int cID = set.getInt("COMMODITY_ID");
+                int amount = set.getInt("AMOUNT");
+
+                map.put(id, new RouteCost(id,pID,cID,amount));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return map;
     }
 
     /**
@@ -160,6 +183,17 @@ public class Route {
     public Port retrieveEndPort(Connection conn) {
 
         return Port.retrieve(END_PORT, conn);
+    }
+
+    /**
+     * Returns the Start Port associated with this Route.
+     *
+     * @param conn Connection to the database.
+     * @return Returns the Commodity referenced by this PortInventory.
+     */
+    public Port retrieveStartPort(Connection conn) {
+
+        return Port.retrieve(START_PORT, conn);
     }
 
     /**

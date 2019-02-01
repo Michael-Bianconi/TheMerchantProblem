@@ -82,3 +82,13 @@ org.h2.jdbc.JdbcSQLException: Column "PORT_ID" not found [42122-197]
 	at org.h2.jdbc.JdbcResultSet.getInt(JdbcResultSet.java:346)
 	at TMP.Route.retrieveAll(Route.java:131)
 	at test.basictest.main(basictest.java:78)
+2019-01-31 23:16:21 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Column "PORT_ID" not found [42122-197]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:357)
+	at org.h2.message.DbException.get(DbException.java:179)
+	at org.h2.message.DbException.get(DbException.java:155)
+	at org.h2.jdbc.JdbcResultSet.getColumnIndex(JdbcResultSet.java:3148)
+	at org.h2.jdbc.JdbcResultSet.get(JdbcResultSet.java:3247)
+	at org.h2.jdbc.JdbcResultSet.getInt(JdbcResultSet.java:346)
+	at TMP.Route.retrieveRouteCosts(Route.java:163)
+	at test.basictest.main(basictest.java:91)
