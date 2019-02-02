@@ -151,6 +151,43 @@ public class Voyage {
     }
 
     /**
+     * Retrieves all Transaction from the table and stores them in a HashMap.
+     *
+     * @param conn Connection to the database.
+     * @return Returns a Map linking each ID to its data.
+     */
+    public HashMap<Integer, Transaction> retrieveAllTransactions(
+            Connection conn) {
+
+        // Initialize variables
+        String sqlCommand = "SELECT * FROM " + Transaction.TABLE_NAME +
+                " WHERE VOYAGE_ID="+ID+";";
+        HashMap<Integer, Transaction> map = new HashMap<>();
+
+        // Execute the statement
+        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
+
+            // Get each field. If there's more than one row, something's wrong.
+            ResultSet set = stmt.executeQuery();
+            while (set.next()) {
+                int ID = set.getInt("ID");
+                int voyage = set.getInt("VOYAGE_ID");
+                int inID = set.getInt("IN_ID");
+                int inAmount = set.getInt("IN_AMOUNT");
+                int outID = set.getInt("OUT_ID");
+                int outAmount = set.getInt("OUT_AMOUNT");
+                map.put(ID, new Transaction(ID,voyage,inID,inAmount,
+                        outID,outAmount));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return map;
+    }
+
+    /**
      * Returns the Merchant associated with this Voyage.
      *
      * @param conn Connection to the database.
