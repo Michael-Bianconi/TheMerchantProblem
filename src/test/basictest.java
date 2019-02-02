@@ -9,14 +9,20 @@ import java.util.Map;
 
 public class basictest {
     static final String JDBC_DRIVER = "org.h2.Driver";
-    static final String DB_URL = "jdbc:h2:~/DEVELOPMENT/projects/TheMerchantProblem/testdb";
+    static final String DB_URL = "jdbc:h2:~/Dev/projects/TheMerchantProblem/testdb";
     static final String USER = "Mike";
     static final String PASS = "";
 
     public static void main(String args[])
     {
-        try (Connection conn = DriverManager.getConnection(DB_URL,USER,PASS)) {
+        try {
             Class.forName(JDBC_DRIVER);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        try (Connection conn = DriverManager.getConnection(DB_URL,USER,PASS)) {
 
             Commodity.createTable(conn);
             Commodity commodityList[] = {
@@ -80,7 +86,39 @@ public class basictest {
                 m.store(conn);
             }
 
+            MerchantInventory.createTable(conn);
+            MerchantInventory mInvList[] = {
+                    new MerchantInventory(0,0,0,50),
+                    new MerchantInventory(1,0,1,25),
+                    new MerchantInventory(2,1,0,30)
+            };
+            for (MerchantInventory m : mInvList)
+            {
+                m.store(conn);
+            }
+
+            Voyage.createTable(conn);
+            Voyage voyageList[] = {
+                    new Voyage(0,0,0,0),
+                    new Voyage(1,0,2,1),
+                    new Voyage(2,0,1,2),
+                    new Voyage(3,1,2,3)
+            };
+            for(Voyage v : voyageList) {v.store(conn);}
+            Map<Integer, Voyage> voyages = Merchant.retrieve(0,conn).retrieveAllVoyages(conn);
+
+            for (Map.Entry<Integer, Voyage> e : voyages.entrySet()) {
+                System.out.println(e.getValue());
+            }
+
+            Map<Integer, MerchantInventory> minvs =
+                    MerchantInventory.retrieveAll(conn);
+
             Map<Integer, Commodity> commodities = Commodity.retrieveAll(conn);
+
+            for (Map.Entry<Integer, MerchantInventory> e : minvs.entrySet()) {
+                System.out.println(e.getValue());
+            }
 
             for (Map.Entry<Integer, Commodity> e : commodities.entrySet()) {
                 System.out.println(e.getValue());

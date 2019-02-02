@@ -174,6 +174,74 @@ public class Merchant {
     }
 
     /**
+     * Retrieves ALL Merchants from the table and stores them in a HashMap.
+     *
+     * @param conn Connection to the database.
+     * @return Returns a Map linking each MerchantID to its Merchant.
+     */
+    public HashMap<Integer, MerchantInventory>
+        retrieveAllMerchantInventories(Connection conn) {
+
+        // Initialize variables
+        String sqlCommand = "SELECT * FROM " + MerchantInventory.TABLE_NAME +
+                " WHERE MERCHANT_ID="+ID+";";
+        HashMap<Integer, MerchantInventory> map = new HashMap<>();
+
+        // Execute the statement
+        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
+
+            // Get each field. If there's more than one row, something's wrong.
+            ResultSet set = stmt.executeQuery();
+            while (set.next()) {
+                int id = set.getInt("ID");
+                int merchantID = set.getInt("MERCHANT_ID");
+                int commodityID = set.getInt("COMMODITY_ID");
+                int amount = set.getInt("AMOUNT");
+                map.put(id, new MerchantInventory(
+                        id,merchantID,commodityID,amount));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return map;
+    }
+
+    /**
+     * Retrieves Voyages from the table and stores them in a HashMap.
+     *
+     * @param conn Connection to the database.
+     * @return Returns a Map linking each ID to its data.
+     */
+    public HashMap<Integer, Voyage> retrieveAllVoyages(Connection conn) {
+
+        // Initialize variables
+        String sqlCommand = "SELECT * FROM " + Voyage.TABLE_NAME +
+                " WHERE MERCHANT_ID="+ID+";";
+        HashMap<Integer, Voyage> map = new HashMap<>();
+
+        // Execute the statement
+        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
+
+            // Get each field. If there's more than one row, something's wrong.
+            ResultSet set = stmt.executeQuery();
+            while (set.next()) {
+                int id = set.getInt("ID");
+                int merchant = set.getInt("MERCHANT_ID");
+                int port = set.getInt("PORT_ID");
+                int time = set.getInt("TIMESTAMP");
+                map.put(id, new Voyage(id,merchant,port,time));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return map;
+    }
+
+    /**
      * Returns the Home Port associated with this Merchant.
      *
      * @param conn Connection to the database.

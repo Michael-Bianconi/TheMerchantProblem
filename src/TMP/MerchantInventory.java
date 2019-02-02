@@ -153,9 +153,9 @@ public class MerchantInventory {
      * @param conn Connection to the database.
      * @return Returns the Route referenced by this PortInventory.
      */
-    public Route retrieveMerchant(Connection conn) {
+    public Merchant retrieveMerchant(Connection conn) {
 
-        return Route.retrieve(MERCHANT_ID, conn);
+        return Merchant.retrieve(MERCHANT_ID, conn);
     }
 
     /**
@@ -194,7 +194,7 @@ public class MerchantInventory {
     public boolean store(Connection conn) {
 
         String sqlCommand =
-                "MERGE INTO " + TABLE_NAME + "(ID,ROUTE_ID,COMMODITY_ID," +
+                "MERGE INTO " + TABLE_NAME + "(ID,MERCHANT_ID,COMMODITY_ID," +
                         "AMOUNT) " +
                 "VALUES("+ID+","+MERCHANT_ID+","+COMMODITY_ID+","+AMOUNT+");";
 
