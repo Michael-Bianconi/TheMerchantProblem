@@ -1,4 +1,4 @@
-package TMP;
+package tmp;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,18 +8,18 @@ import java.util.HashMap;
 import java.util.Objects;
 
 /**
- * Each Route incurs a RouteCost that Merchants must pay before travel.
+ * Merchant's carry Commodities with them to buy and sell at Ports.
  */
-public class RouteCost {
+public class MerchantInventory {
 
-    /** Name of RouteCost table. */
-    public static final String TABLE_NAME = "ROUTE_COSTS";
+    /** Name of the table. */
+    public static final String TABLE_NAME = "MERCHANT_INVENTORIES";
 
-    /** ID of the Route. */
+    /** Unique ID to this instance of this class. */
     public final int ID;
 
-    /** ID of the associated route. */
-    public final int ROUTE_ID;
+    /** ID of the associated Merchant. */
+    public final int MERCHANT_ID;
 
     /** ID of the associated commodity. */
     public final int COMMODITY_ID;
@@ -37,11 +37,11 @@ public class RouteCost {
         String sqlCommand =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" +
                         "ID             INTEGER PRIMARY KEY NOT NULL," +
-                        "ROUTE_ID        INTEGER             NOT NULL," +
+                        "MERCHANT_ID    INTEGER             NOT NULL," +
                         "COMMODITY_ID   INTEGER             NOT NULL," +
                         "AMOUNT         INTEGER             NOT NULL," +
-                        "FOREIGN KEY(ROUTE_ID) REFERENCES " +
-                        Route.TABLE_NAME + "(ID)," +
+                        "FOREIGN KEY(MERCHANT_ID) REFERENCES " +
+                        Merchant.TABLE_NAME + "(ID)," +
                         "FOREIGN KEY(COMMODITY_ID) REFERENCES " +
                         Commodity.TABLE_NAME + "(ID));";
 
@@ -56,31 +56,30 @@ public class RouteCost {
     }
 
     public boolean equals(Object o) {
-        if (!(o instanceof RouteCost)) { return false; }
-        RouteCost r = (RouteCost) o;
+        if (!(o instanceof MerchantInventory)) { return false; }
+        MerchantInventory r = (MerchantInventory) o;
         return r.ID == ID
-                && r.ROUTE_ID == ROUTE_ID
+                && r.MERCHANT_ID == MERCHANT_ID
                 && r.COMMODITY_ID == COMMODITY_ID
                 && r.AMOUNT == AMOUNT;
     }
 
     public int hashCode() {
-        return Objects.hash(ID,ROUTE_ID,COMMODITY_ID,AMOUNT);
+        return Objects.hash(ID,MERCHANT_ID,COMMODITY_ID,AMOUNT);
     }
 
     /**
-     * Retrieves the RouteCost data from the connection.
+     * Retrieves the data from the connection.
      *
-     * @param id   The ID of the RouteCost to retrieve.
+     * @param id   The ID of the data to retrieve.
      * @param conn The connection to the database.
-     * @return Returns the Route with the given ID,
-     *         or null if not found.
+     * @return Returns the data with the given ID or null if not found.
      */
-    public static RouteCost retrieve(int id, Connection conn) {
+    public static MerchantInventory retrieve(int id, Connection conn) {
         // Initialize variables
         int numResults = 0;
         int costID = -1;
-        int routeID = -1;
+        int merchantID = -1;
         int commodityID = -1;
         int amount = -1;
         String sqlCommand =
@@ -97,7 +96,7 @@ public class RouteCost {
                 }
 
                 costID = set.getInt("ID");
-                routeID = set.getInt("ROUTE_ID");
+                merchantID = set.getInt("MERCHANT_ID");
                 commodityID = set.getInt("COMMODITY_ID");
                 amount = set.getInt("AMOUNT");
                 numResults++;
@@ -112,20 +111,20 @@ public class RouteCost {
             return null;
         }
 
-        return new RouteCost(costID, routeID, commodityID, amount);
+        return new MerchantInventory(costID, merchantID, commodityID, amount);
     }
 
     /**
-     * Retrieves ALL RouteCosts from the table and stores them in a HashMap.
+     * Retrieves ALL data from the table and stores them in a HashMap.
      *
      * @param conn Connection to the database.
      * @return Returns a Map linking each CostID to its Cost.
      */
-    public static HashMap<Integer, RouteCost> retrieveAll(Connection conn) {
+    public static HashMap<Integer, MerchantInventory> retrieveAll(Connection conn) {
 
         // Initialize variables
         String sqlCommand = "SELECT * FROM " + TABLE_NAME + ";";
-        HashMap<Integer, RouteCost> map = new HashMap<>();
+        HashMap<Integer, MerchantInventory> map = new HashMap<>();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -135,10 +134,10 @@ public class RouteCost {
             while (set.next()) {
 
                 int id = set.getInt("ID");
-                int routeID = set.getInt("ROUTE_ID");
+                int merchantID = set.getInt("MERCHANT_ID");
                 int commodityID = set.getInt("COMMODITY_ID");
                 int amount = set.getInt("AMOUNT");
-                map.put(id, new RouteCost(id, routeID, commodityID, amount));
+                map.put(id, new MerchantInventory(id, merchantID, commodityID, amount));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -149,14 +148,14 @@ public class RouteCost {
     }
 
     /**
-     * Returns the Route associated with this Route.
+     * Returns the Merchant associated with this Route.
      *
      * @param conn Connection to the database.
      * @return Returns the Route referenced by this PortInventory.
      */
-    public Route retrieveRoute(Connection conn) {
+    public Merchant retrieveMerchant(Connection conn) {
 
-        return Route.retrieve(ROUTE_ID, conn);
+        return Merchant.retrieve(MERCHANT_ID, conn);
     }
 
     /**
@@ -173,19 +172,20 @@ public class RouteCost {
     /**
      * Constructs a new Route.
      * @param id ID of the Route.
-     * @param routeID ID of the Route.
+     * @param merchantID ID of the Route.
      * @param commodityID ID of the associated Commodity.
      * @param amount Amount required to travel.
      */
-    public RouteCost(int id, int routeID, int commodityID, int amount) {
+    public MerchantInventory(
+            int id, int merchantID, int commodityID, int amount) {
         this.ID = id;
-        this.ROUTE_ID = routeID;
+        this.MERCHANT_ID = merchantID;
         this.COMMODITY_ID = commodityID;
         this.AMOUNT = amount;
     }
 
     /**
-     * Stores this RouteCost into the database. Will replace the old
+     * Stores this MerchantInventory into the database. Will replace the old
      * one if one already exists with the same ID.
      *
      * @param conn The connection to the database.
@@ -194,9 +194,9 @@ public class RouteCost {
     public boolean store(Connection conn) {
 
         String sqlCommand =
-                "MERGE INTO " + TABLE_NAME + "(ID,ROUTE_ID,COMMODITY_ID," +
+                "MERGE INTO " + TABLE_NAME + "(ID,MERCHANT_ID,COMMODITY_ID," +
                         "AMOUNT) " +
-                "VALUES("+ID+","+ROUTE_ID+","+COMMODITY_ID+","+AMOUNT+");";
+                "VALUES("+ID+","+MERCHANT_ID+","+COMMODITY_ID+","+AMOUNT+");";
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
             stmt.executeUpdate();
@@ -209,6 +209,6 @@ public class RouteCost {
     }
 
     public String toString() {
-        return "[ROUTE COST]\t"+ID+"\t"+ROUTE_ID+"\t"+COMMODITY_ID+"\t"+AMOUNT;
+        return "[MERCHANT INVENTORY]\t"+ID+"\t"+MERCHANT_ID+"\t"+COMMODITY_ID+"\t"+AMOUNT;
     }
 }

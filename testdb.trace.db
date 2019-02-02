@@ -23,8 +23,8 @@ org.h2.message.DbException: General error: "java.lang.IllegalStateException: The
 	at org.h2.Driver.connect(Driver.java:69)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:677)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:228)
-	at TMP.TMPDatabase.<init>(TMPDatabase.java:25)
-	at test.Debug.main(Debug.java:33)
+	at tmp.TMPDatabase.<init>(TMPDatabase.java:25)
+	at test.Debug.main_commandline(Debug.java:33)
 Caused by: org.h2.jdbc.JdbcSQLException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
 	... 25 more
@@ -58,8 +58,8 @@ org.h2.message.DbException: General error: "java.lang.IllegalStateException: The
 	at org.h2.Driver.connect(Driver.java:69)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:677)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:228)
-	at TMP.TMPDatabase.<init>(TMPDatabase.java:31)
-	at test.Debug.main(Debug.java:33)
+	at tmp.TMPDatabase.<init>(TMPDatabase.java:31)
+	at test.Debug.main_commandline(Debug.java:33)
 Caused by: org.h2.jdbc.JdbcSQLException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
 	... 25 more
@@ -93,8 +93,8 @@ org.h2.message.DbException: General error: "java.lang.IllegalStateException: The
 	at org.h2.Driver.connect(Driver.java:69)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:677)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:228)
-	at TMP.TMPDatabase.<init>(TMPDatabase.java:31)
-	at test.Debug.main(Debug.java:33)
+	at tmp.TMPDatabase.<init>(TMPDatabase.java:31)
+	at test.Debug.main_commandline(Debug.java:33)
 Caused by: org.h2.jdbc.JdbcSQLException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
 	... 25 more
@@ -128,8 +128,8 @@ org.h2.message.DbException: General error: "java.lang.IllegalStateException: The
 	at org.h2.Driver.connect(Driver.java:69)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:677)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:228)
-	at TMP.TMPDatabase.<init>(TMPDatabase.java:31)
-	at test.Debug.main(Debug.java:33)
+	at tmp.TMPDatabase.<init>(TMPDatabase.java:31)
+	at test.Debug.main_commandline(Debug.java:33)
 Caused by: org.h2.jdbc.JdbcSQLException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
 	... 25 more
@@ -339,8 +339,8 @@ org.h2.message.DbException: General error: "java.lang.IllegalStateException: The
 	at org.h2.Driver.connect(Driver.java:69)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:677)
 	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:228)
-	at TMP.TMPDatabase.<init>(TMPDatabase.java:34)
-	at test.Debug.main(Debug.java:32)
+	at tmp.TMPDatabase.<init>(TMPDatabase.java:34)
+	at test.Debug.main_commandline(Debug.java:32)
 Caused by: org.h2.jdbc.JdbcSQLException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
 	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
 	... 25 more

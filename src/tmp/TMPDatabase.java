@@ -1,9 +1,7 @@
-package TMP;
+package tmp;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -201,7 +199,7 @@ public class TMPDatabase implements AutoCloseable {
             int index = rand.nextInt(pairs.size());
             IDPair pair = pairs.get(index);
             pairs.remove(index);
-            int time = rand.nextInt();
+            int time = rand.nextInt(100);
             Voyage v = new Voyage(id,pair.id1,pair.id2,time);
             v.store(conn);
             voyages[id] = v;

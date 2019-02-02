@@ -4,7 +4,7 @@ import java.sql.Connection;
  * @author Michael Bianconi
  * @since 01/28/2019
  *
- * This main class is the executable for the TheMerchantProblem file.
+ * This main_commandline class is the executable for the TheMerchantProblem file.
  */
 public class TheMerchantProblem {
 

@@ -1,10 +1,11 @@
-package TMP;
+package tmp;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -218,7 +219,8 @@ public class Merchant {
 
         // Initialize variables
         String sqlCommand = "SELECT * FROM " + Voyage.TABLE_NAME +
-                " WHERE MERCHANT_ID="+ID+";";
+                " WHERE MERCHANT_ID="+ID+
+                " ORDER BY TIMESTAMP DESC";
         HashMap<Integer, Voyage> map = new HashMap<>();
 
         // Execute the statement
@@ -291,5 +293,25 @@ public class Merchant {
     public String toString() {
         return "[MERCHANT]\t"+ID+"\t"+NAME+"\t"+HOME_PORT+
                 "\t"+CURRENT_PORT+"\t"+CAPACITY;
+    }
+
+    /**
+     * Returns the sum weight of all commodities this Merchant has
+     * in his inventory.
+     * @param conn Connection to the database.
+     * @return float
+     */
+    public float getUsedCapacity(Connection conn) {
+        Map<Integer, MerchantInventory> map =
+                retrieveAllMerchantInventories(conn);
+        float total = 0;
+
+        for (Map.Entry<Integer, MerchantInventory> e : map.entrySet()) {
+            MerchantInventory i = e.getValue();
+            Commodity c = i.retrieveCommodity(conn);
+            total += c.WEIGHT * i.AMOUNT;
+        }
+
+        return total;
     }
 }

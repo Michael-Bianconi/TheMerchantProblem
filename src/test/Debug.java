@@ -1,12 +1,8 @@
 package test;
 
-import TMP.*;
-import org.h2.mvstore.DataUtils;
+import tmp.*;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.util.Map;
-import java.util.Random;
 
 /**
  * @author Michael Bianconi

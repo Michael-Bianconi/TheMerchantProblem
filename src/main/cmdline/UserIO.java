@@ -1,0 +1,291 @@
+package main.cmdline;
+
+import tmp.*;
+
+import java.sql.Connection;
+import java.util.Map;
+
+/**
+ * @author Michael Bianconi
+ * @since 02-02-2019
+ * This class handles the user interface.
+ */
+public class UserIO {
+
+    private static final String HELP_STRING =
+            "==================================================================\n"+
+            "= Welcome to The Merchant Problem!                               =\n"+
+            "=                                                                =\n"+
+            "= Travel from Port to Port, buying and selling Commodities.      =\n"+
+            "= Make as much profit as possible and return home.               =\n"+
+            "= Commands:                                                      =\n"+
+            "= \tMERCHANT? - Displays info about your merchant.               =\n"+
+            "= \tPORT? [port] - Displays info about the given port.           =\n"+
+            "= \tTRADE [in][amount [out][amount] - Trade at the Port.         =\n"+
+            "= \tTRAVEL [route] - Moves your Merchant along the Route.        =\n"+
+            "= \tRETIRE - End your Voyage. Try to be at your Home Port.       =\n"+
+            "= \tHELP - Displays this message.                                =\n"+
+            "==================================================================\n";
+
+    private static final String MERCHANT_INFO_STRING =
+            "==================================================================\n"+
+            "= MERCHANT?\n" +
+            "= ID:         %d\n" +
+            "= NAME:       %s\n" +
+            "= HOME PORT:  %s (ID=%d)\n" +
+            "= CAPACITY:   %.2f/%d\n" +
+            "= INVENTORY:\n%s" +       // use buildInventoryString(Merchant)
+            "= VOYAGE:\n%s"+
+            "==================================================================\n";
+
+    private static final String MERCHANT_INVENTORY_INFO_STRING =
+            "=    " +
+            "ID: %d\t" +
+            "COMMODITY: %s\t" +
+            "AMOUNT: %d\t" +
+            "WEIGHT (PER UNIT): %.2f\t" +
+            "WEIGHT (TOTAL): %.2f\t\n";
+
+    private static final String PORT_INFO_STRING =
+            "==================================================================\n"+
+            "= PORT?\n" +
+            "= ID:    %d\n" +
+            "= NAME:  %s\n" +
+            "= INVENTORY:\n%s" + // use buildInventoryString(Port)
+            "= ROUTES:\n%s" + // use buildRoutes(Port)
+            "==================================================================\n";
+
+    private static final String PORT_INVENTORY_INFO_STRING =
+            "=    " +
+            "ID: %d\t" +
+            "COMMODITY: %s\t" +
+            "ON HAND: %d\t" +
+            "BUY PRICE: %d\t" +
+            "SELL PRICE: %d\t\n";
+
+    private static final String ROUTE_INFO_STRING =
+            "=    " +
+            "ID: %s\t" +
+            "START: %s(ID=%d)\t" +
+            "END: %s(ID=%d)\n" +
+            "=    Costs:\n%s"; // use buildRouteCostString(Route)
+
+    private static final String ROUTE_COST_INFO_STRING =
+            "=        " +
+            "ID: %d\t" +
+            "Route: %d\t" +
+            "COMMODITY: %s(ID=%d)\t" +
+            "Amount: %d\n";
+
+    private static final String VOYAGE_INFO_STRING =
+            "=    " +
+            "ID: %d\t" +
+            "MERCHANT: %s(ID=%d)\t" +
+            "PORT: %s(ID=%d)\t" +
+            "TIMESTAMP: %d\n" +
+            "=    TRANSACTIONS:\n%s"; // use buildTransactionsString(Voyage)
+
+    private static final String TRANSACTION_INFO_STRING =
+            "=        " +
+            "ID: %d\t" +
+            "VOYAGE: %d\t" +
+            "IN: %d %s(ID=%d)\t" +
+            "OUT: %d %s(ID=%d)\n";
+
+
+    /**
+     * Builds a String containing information about all of a Merchant's
+     * inventories.
+     * @param m Gets this Merchant's inventory info.
+     * @param conn Connection to the database.
+     * @return String
+     */
+    private static String buildInventoryString(Merchant m, Connection conn)
+    {
+        Map<Integer, MerchantInventory> map =
+                m.retrieveAllMerchantInventories(conn);
+        StringBuilder builder = new StringBuilder();
+
+        for (Map.Entry<Integer, MerchantInventory> e : map.entrySet()) {
+            MerchantInventory i = e.getValue();
+            Commodity c = i.retrieveCommodity(conn);
+            builder.append(
+                    String.format(
+                            MERCHANT_INVENTORY_INFO_STRING,
+                            i.ID,c.NAME,i.AMOUNT,c.WEIGHT,c.WEIGHT * i.AMOUNT
+                    )
+            );
+        }
+        return builder.toString();
+    }
+
+
+    /**
+     * Builds a String containing information about all of a Port's
+     * inventories.
+     * @param p Gets this Port's inventory info.
+     * @param conn Connection to the database.
+     * @return String
+     */
+    private static String buildInventoryString(Port p, Connection conn) {
+        Map<Integer, PortInventory> map =
+                p.retrievePortInventories(conn);
+        StringBuilder builder = new StringBuilder();
+
+        for (Map.Entry<Integer, PortInventory> e : map.entrySet()) {
+            PortInventory i = e.getValue();
+            Commodity c = i.retrieveCommodity(conn);
+            builder.append(
+                    String.format(
+                            PORT_INVENTORY_INFO_STRING,
+                            i.ID,c.NAME,i.ON_HAND,i.BUY_PRICE,i.SELL_PRICE
+                    )
+            );
+        }
+        return builder.toString();
+    }
+
+
+    private static String buildRouteCostsString(Route r, Connection conn) {
+
+        Map<Integer, RouteCost> map =
+                r.retrieveRouteCosts(conn);
+        StringBuilder builder = new StringBuilder();
+
+        for (Map.Entry<Integer, RouteCost> e : map.entrySet()) {
+            RouteCost cost = e.getValue();
+            Commodity com = cost.retrieveCommodity(conn);
+
+            builder.append(
+                    String.format(
+                            ROUTE_COST_INFO_STRING,
+                            cost.ID,
+                            r.ID,
+                            com.NAME, com.ID,
+                            cost.AMOUNT
+                    )
+            );
+        }
+        return builder.toString();
+    }
+
+    private static String buildRoutesString(Port p, Connection conn) {
+        Map<Integer, Route> map =
+                p.retrieveRoutesOut(conn);
+        StringBuilder builder = new StringBuilder();
+
+        for (Map.Entry<Integer, Route> e : map.entrySet()) {
+            Route r = e.getValue();
+            Port start = r.retrieveStartPort(conn);
+            Port end = r.retrieveEndPort(conn);
+
+            builder.append(
+                    String.format(
+                            ROUTE_INFO_STRING,
+                            r.ID,
+                            start.NAME, start.ID,
+                            end.NAME, end.ID,
+                            buildRouteCostsString(r, conn)
+                    )
+            );
+        }
+        return builder.toString();
+    }
+
+
+    private static String buildTransactionsString(Voyage v, Connection conn) {
+        Map<Integer, Transaction> map =
+                v.retrieveAllTransactions(conn);
+        StringBuilder builder = new StringBuilder();
+
+        for (Map.Entry<Integer, Transaction> e : map.entrySet()) {
+            Transaction t = e.getValue();
+            Commodity in = t.retrieveInCommodity(conn);
+            Commodity out = t.retrieveOutCommodity(conn);
+
+            builder.append(
+                    String.format(
+                            TRANSACTION_INFO_STRING,
+                            t.ID,
+                            v.ID,
+                            t.IN_AMOUNT, in.NAME, in.ID,
+                            t.OUT_AMOUNT, out.NAME, out.ID
+                    )
+            );
+        }
+        return builder.toString();
+    }
+
+    private static String buildVoyageString(Merchant m, Connection conn) {
+
+        Map<Integer, Voyage> map =
+                m.retrieveAllVoyages(conn);
+
+        StringBuilder builder = new StringBuilder();
+
+        for (Map.Entry<Integer, Voyage> e : map.entrySet()) {
+
+            Voyage v = e.getValue();
+            Port p = v.retrievePort(conn);
+
+            builder.append(
+                    String.format(
+                            VOYAGE_INFO_STRING,
+                            v.ID,
+                            m.NAME, m.ID,
+                            p.NAME, p.ID,
+                            v.TIMESTAMP,
+                            buildTransactionsString(v, conn)
+                    )
+            );
+        }
+
+        return builder.toString();
+    }
+
+
+
+    /**
+     * Displays the given Merchant's associated fields, along with his or her
+     * inventory.
+     * @param m Merchant to display.
+     * @param conn Connection to the database.
+     */
+    private static void commandMerchantDisplay(Merchant m, Connection conn) {
+
+        Port p = m.retrieveHomePort(conn);
+        float used = m.getUsedCapacity(conn);
+        String out = String.format (
+                MERCHANT_INFO_STRING,
+                m.ID, m.NAME,
+                p.NAME, p.ID,
+                used, m.CAPACITY,
+                buildInventoryString(m, conn),
+                buildVoyageString(m, conn)
+        );
+
+        System.out.println(out);
+    }
+
+    /**
+     * Displays the Port's info and inventory.
+     * @param p Port to display.
+     * @param conn Connection to the database.
+     */
+    private static void commandPortDisplay(Port p, Connection conn) {
+        String out = String.format(
+                PORT_INFO_STRING,
+                p.ID, p.NAME,
+                buildInventoryString(p, conn),
+                buildRoutesString(p, conn)
+        );
+        System.out.println(out);
+    }
+
+    public static void test(Merchant m, Port p, Connection conn) {
+
+        commandMerchantDisplay(m, conn);
+        commandPortDisplay(p, conn);
+    }
+}
+
