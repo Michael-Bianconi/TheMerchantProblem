@@ -57,11 +57,10 @@ public class Commodity {
         // Initialize variables
         int numResults = 0;
         int in_id = -1;
-        String name="";
-        float weight=-1;
+        String name = "";
+        float weight = -1;
         String sqlCommand =
-                "SELECT * FROM " + TABLE_NAME +
-                " WHERE ID=" + id + ";";
+                "SELECT * FROM " + TABLE_NAME + " WHERE ID=" + id + ";";
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -145,8 +144,7 @@ public class Commodity {
 
 
     /**
-     * Initialize the Cosmmodity. Once constructed, its fields can never
-     * be changed.
+     * Construct the Commodity.
      * @param id The ID of this commodity.
      * @param name The NAME of this commodity.
      * @param weight The WEIGHT of this commodity, per unit.
@@ -157,19 +155,14 @@ public class Commodity {
         this.WEIGHT = weight;
     }
 
-    /** Hashes all of this Commodity's fields together. */
-    public int hashCode() {return Objects.hash(ID,NAME,WEIGHT);}
+    public int hashCode() {return Objects.hash(ID);}
 
-    /** @return Returns true if all values are the same. */
     public boolean equals(Object o) {
         if (!(o instanceof Commodity)) {return false;}
         Commodity c = (Commodity) o;
-        return c.NAME.equals(this.NAME)
-            && c.WEIGHT == this.WEIGHT
-            && c.ID == this.ID;
+        return c.ID == this.ID;
     }
 
-    /** @return Returns this Commodity's fields concatenated together. */
     public String toString() {
         return "[Commodity]\t" + ID + "\t" + NAME + "\t" + WEIGHT;
     }
