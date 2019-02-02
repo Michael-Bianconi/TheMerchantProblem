@@ -255,3 +255,97 @@ MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(3
 2019-02-02 09:18:58 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(38,3,2,216,13,23);"; expected ",, )"; SQL statement:
 MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(38,3,2,216,13,23); [42001-196]
+2019-02-02 09:36:10 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Ambiguous column name "ID"; SQL statement:
+SELECT * FROM (PORTS JOIN ROUTES) WHERE ID=3 [90059-196]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
+	at org.h2.message.DbException.get(DbException.java:179)
+	at org.h2.message.DbException.get(DbException.java:155)
+	at org.h2.expression.ExpressionColumn.mapColumn(ExpressionColumn.java:124)
+	at org.h2.expression.ExpressionColumn.mapColumns(ExpressionColumn.java:94)
+	at org.h2.expression.Comparison.mapColumns(Comparison.java:492)
+	at org.h2.command.dml.Select.mapColumns(Select.java:1233)
+	at org.h2.command.dml.Select.init(Select.java:814)
+	at org.h2.command.Parser.parseSelect(Parser.java:1749)
+	at org.h2.command.Parser.parsePrepared(Parser.java:449)
+	at org.h2.command.Parser.parse(Parser.java:321)
+	at org.h2.command.Parser.parse(Parser.java:293)
+	at org.h2.command.Parser.prepareCommand(Parser.java:258)
+	at org.h2.engine.Session.prepareLocal(Session.java:578)
+	at org.h2.engine.Session.prepareCommand(Session.java:519)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1204)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:176)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:164)
+	at org.h2.server.web.WebApp.getResult(WebApp.java:1380)
+	at org.h2.server.web.WebApp.query(WebApp.java:1053)
+	at org.h2.server.web.WebApp$1.next(WebApp.java:1015)
+	at org.h2.server.web.WebApp$1.next(WebApp.java:1002)
+	at org.h2.server.web.WebThread.process(WebThread.java:164)
+	at org.h2.server.web.WebThread.run(WebThread.java:89)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2019-02-02 09:36:21 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Ambiguous column name "ID"; SQL statement:
+SELECT * FROM (PORTS JOIN ROUTES) WHERE ID=PORT.3 [90059-196]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
+	at org.h2.message.DbException.get(DbException.java:179)
+	at org.h2.message.DbException.get(DbException.java:155)
+	at org.h2.expression.ExpressionColumn.mapColumn(ExpressionColumn.java:124)
+	at org.h2.expression.ExpressionColumn.mapColumns(ExpressionColumn.java:94)
+	at org.h2.expression.Comparison.mapColumns(Comparison.java:492)
+	at org.h2.command.dml.Select.mapColumns(Select.java:1233)
+	at org.h2.command.dml.Select.init(Select.java:814)
+	at org.h2.command.Parser.parseSelect(Parser.java:1749)
+	at org.h2.command.Parser.parsePrepared(Parser.java:449)
+	at org.h2.command.Parser.parse(Parser.java:321)
+	at org.h2.command.Parser.parse(Parser.java:293)
+	at org.h2.command.Parser.prepareCommand(Parser.java:258)
+	at org.h2.engine.Session.prepareLocal(Session.java:578)
+	at org.h2.engine.Session.prepareCommand(Session.java:519)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1204)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:176)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:164)
+	at org.h2.server.web.WebApp.getResult(WebApp.java:1380)
+	at org.h2.server.web.WebApp.query(WebApp.java:1053)
+	at org.h2.server.web.WebApp$1.next(WebApp.java:1015)
+	at org.h2.server.web.WebApp$1.next(WebApp.java:1002)
+	at org.h2.server.web.WebThread.process(WebThread.java:164)
+	at org.h2.server.web.WebThread.run(WebThread.java:89)
+	at java.base/java.lang.Thread.run(Thread.java:834)
+2019-02-02 09:36:42 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "PORTS[*] JOIN ROUTES"; expected "PREPARE, {"; SQL statement:
+PORTS JOIN ROUTES [42001-196]
+2019-02-02 09:47:23 database: flush
+org.h2.message.DbException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
+	at org.h2.message.DbException.get(DbException.java:168)
+	at org.h2.message.DbException.convert(DbException.java:295)
+	at org.h2.mvstore.db.MVTableEngine$1.uncaughtException(MVTableEngine.java:95)
+	at org.h2.mvstore.MVStore.panic(MVStore.java:378)
+	at org.h2.mvstore.MVStore.<init>(MVStore.java:361)
+	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2930)
+	at org.h2.mvstore.db.MVTableEngine$Store.open(MVTableEngine.java:155)
+	at org.h2.mvstore.db.MVTableEngine.init(MVTableEngine.java:100)
+	at org.h2.engine.Database.getPageStore(Database.java:2476)
+	at org.h2.engine.Database.open(Database.java:697)
+	at org.h2.engine.Database.openDatabase(Database.java:276)
+	at org.h2.engine.Database.<init>(Database.java:270)
+	at org.h2.engine.Engine.openSession(Engine.java:64)
+	at org.h2.engine.Engine.openSession(Engine.java:176)
+	at org.h2.engine.Engine.createSessionAndValidate(Engine.java:154)
+	at org.h2.engine.Engine.createSession(Engine.java:137)
+	at org.h2.engine.Engine.createSession(Engine.java:27)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:354)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:116)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:100)
+	at org.h2.Driver.connect(Driver.java:69)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:677)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:228)
+	at TMP.TMPDatabase.<init>(TMPDatabase.java:34)
+	at test.Debug.main(Debug.java:32)
+Caused by: org.h2.jdbc.JdbcSQLException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
+	... 25 more
+Caused by: java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]
+	at org.h2.mvstore.DataUtils.newIllegalStateException(DataUtils.java:765)
+	at org.h2.mvstore.FileStore.open(FileStore.java:173)
+	at org.h2.mvstore.MVStore.<init>(MVStore.java:347)
+	... 20 more

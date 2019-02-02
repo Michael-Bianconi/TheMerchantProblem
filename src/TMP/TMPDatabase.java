@@ -130,7 +130,7 @@ public class TMPDatabase implements AutoCloseable {
 
             int index;
             if (portPairs.size()==1) {index=0;}
-            else {index = rand.nextInt(portPairs.size()-1);}
+            else {index = rand.nextInt(portPairs.size());}
             IDPair pair = portPairs.get(index);
             portPairs.remove(index);
 
@@ -147,7 +147,7 @@ public class TMPDatabase implements AutoCloseable {
         int numCosts = (num > pairs.size()) ? pairs.size() : num;
         RouteCost[] costs = new RouteCost[numCosts];
         for (int id = 0; id < numCosts; id++) {
-            int index = rand.nextInt(pairs.size()-1);
+            int index = rand.nextInt(pairs.size());
             IDPair pair = pairs.get(index);
             pairs.remove(index);
             int amount = rand.nextInt(256);
@@ -164,8 +164,8 @@ public class TMPDatabase implements AutoCloseable {
         Merchant[] merchants = new Merchant[num];
         for (int id = 0; id < num; id++) {
             String name = createRandomString(8);
-            int home = portIDs.get(random.nextInt(portIDs.size()-1));
-            int current = portIDs.get(random.nextInt(portIDs.size()-1));
+            int home = portIDs.get(random.nextInt(portIDs.size()));
+            int current = portIDs.get(random.nextInt(portIDs.size()));
             int capacity = random.nextInt(1024);
             Merchant m  = new Merchant(id, name, home, current, capacity);
             m.store(conn);
@@ -180,7 +180,7 @@ public class TMPDatabase implements AutoCloseable {
         num = (num > pairs.size()) ? pairs.size() : num;
         MerchantInventory[] invs = new MerchantInventory[num];
         for (int id = 0; id < num; id++) {
-            int index = rand.nextInt(pairs.size()-1);
+            int index = rand.nextInt(pairs.size());
             IDPair pair = pairs.get(index);
             pairs.remove(index);
             int amount = rand.nextInt(256);
@@ -198,7 +198,7 @@ public class TMPDatabase implements AutoCloseable {
         Random rand = new Random();
         Voyage[] voyages = new Voyage[num];
         for (int id = 0; id < num; id++) {
-            int index = rand.nextInt(pairs.size()-1);
+            int index = rand.nextInt(pairs.size());
             IDPair pair = pairs.get(index);
             pairs.remove(index);
             int time = rand.nextInt();
@@ -212,13 +212,14 @@ public class TMPDatabase implements AutoCloseable {
     public Transaction[] createTransactions(int num) {
         ArrayList<Integer> voyages =
                 getColumnInt(Voyage.TABLE_NAME, "ID");
+        System.out.println(voyages.size());
         ArrayList<IDPair> coms = _transactionCartesian();
         System.out.println(coms);
         Random rand = new Random();
         Transaction[] trans = new Transaction[num];
         for (int id = 0; id < num; id++) {
-            int voyage = voyages.get(rand.nextInt(voyages.size()-1));
-            IDPair pair = coms.get(rand.nextInt(coms.size()-1));
+            int voyage = voyages.get(rand.nextInt(voyages.size()));
+            IDPair pair = coms.get(rand.nextInt(coms.size()));
             int comIn = pair.id1;
             int comOut = pair.id2;
             int amountIn = rand.nextInt(256);

@@ -1,7 +1,6 @@
 package test;
 
-import TMP.Commodity;
-import TMP.TMPDatabase;
+import TMP.*;
 import org.h2.mvstore.DataUtils;
 
 import java.sql.Connection;
@@ -43,53 +42,20 @@ public class Debug {
             db.createVoyages(6);
             db.createTransactions(39);
 
+            Port p = Port.retrieve(3,conn);
+            System.out.println(p.retrievePortInventories(conn));
+            System.out.println(p.retrieveRoutesOut(conn));
+
+            Route r = Route.retrieve(2,conn);
+            System.out.println(r.retrieveRouteCosts(conn));
+
+            Merchant m = Merchant.retrieve(0,conn);
+            System.out.println(m.retrieveAllMerchantInventories(conn));
+            System.out.println(m.retrieveAllVoyages(conn));
+
+            Voyage v = Voyage.retrieve(5,conn);
+            System.out.println(v.retrieveAllTransactions(conn));
+
         } catch(Exception e) {e.printStackTrace();}
-    }
-
-    private static String createRandomString(int length) {
-        StringBuilder builder = new StringBuilder();
-        Random rand = new Random();
-        for (int i = 0; i < length; i++) {
-            int val = rand.nextInt(25)+65;
-            builder.append((char) val);
-        }
-        return builder.toString();
-    }
-
-    /**
-     * Creates and debugs Commodities.
-     * @param conn Connection to the database.
-     * @return Returns an array of Commodities for future use.
-     */
-    private static Commodity[] debugCommodities(Connection conn) {
-
-        Commodity commodities[] = new Commodity[NUM_COMMODITIES];
-        Random rand = new Random();
-        for (int i = 0; i < NUM_COMMODITIES; i++) {
-            float weight = rand.nextFloat() * 100;
-            String name = createRandomString(5);
-            Commodity c = new Commodity(i, name, weight);
-            commodities[i]=c;
-        }
-
-        System.out.println("COMMODITIES:");
-        for (Commodity c : commodities) { System.out.println(c); }
-
-        for (Commodity c : commodities) { c.store(conn); }
-
-        System.out.println("COMMODITIES STORED IN DATABASE:");
-        Map<Integer,Commodity> map = Commodity.retrieveAll(conn);
-        for (Map.Entry<Integer, Commodity> e : map.entrySet()) {
-            System.out.println(e.getValue());
-        }
-
-        System.out.println("COMMODITIES RETRIEVED BY RANDOM ID:");
-        for (int i = 0; i < NUM_COMMODITIES; i++) {
-            int id = rand.nextInt(NUM_COMMODITIES);
-            Commodity c = Commodity.retrieve(id, conn);
-            System.out.println("ID: " + id + ", Data: " + c);
-        }
-
-        return commodities;
     }
 }
