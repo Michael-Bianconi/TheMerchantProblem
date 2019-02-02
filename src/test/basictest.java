@@ -36,9 +36,9 @@ public class basictest {
 
             Port.createTable(conn);
             Port portList[] = {
-                    new Port(0,"Nassau"),
-                    new Port(1,"San Juan"),
-                    new Port(2,"Antigua")
+                    new Port(0,"Nassau",0,0),
+                    new Port(1,"San Juan",0,1),
+                    new Port(2,"Antigua",1,0)
             };
             for (Port p : portList)
             {

@@ -26,6 +26,12 @@ public class Port {
     /** Name of the Port. */
     public final String NAME;
 
+    /** X COORDINATE OF THE PORT. */
+    public final int X;
+
+    /** Y COORDINATE OF THE PORT. */
+    public final int Y;
+
     /**
      * Creates the port table if it doesn't already exist.
      * @param conn The connection to the H2 database.
@@ -35,7 +41,9 @@ public class Port {
         String sqlCommand =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" +
                 "ID     INTEGER PRIMARY KEY NOT NULL," +
-                "NAME   TEXT                NOT NULL);";
+                "NAME   TEXT                NOT NULL," +
+                "X      INTEGER             NOT NULL," +
+                "Y      INTEGER             NOT NULL);";
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
             stmt.executeUpdate();
@@ -57,10 +65,11 @@ public class Port {
         // Initialize variables
         int numResults = 0;
         int in_id = -1;
-        String name="";
+        String name = "";
+        int x = -1;
+        int y = -1;
         String sqlCommand =
-                "SELECT * FROM " + TABLE_NAME +
-                " WHERE ID=" + id + ";";
+                "SELECT * FROM " + TABLE_NAME + " WHERE ID=" + id + ";";
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -72,6 +81,8 @@ public class Port {
 
                 in_id = set.getInt("ID");
                 name = set.getString("NAME");
+                x = set.getInt("X");
+                y = set.getInt("Y");
                 numResults++;
             }
         } catch (SQLException e) {
@@ -82,7 +93,7 @@ public class Port {
         // There were no rows in the table with that ID
         if (numResults == 0) { return null; }
 
-        return new Port(in_id, name);
+        return new Port(in_id, name, x, y);
     }
 
 
@@ -106,7 +117,9 @@ public class Port {
 
                 int id = set.getInt("ID");
                 String name = set.getString("NAME");
-                map.put(id, new Port(id, name));
+                int x = set.getInt("X");
+                int y = set.getInt("Y");
+                map.put(id, new Port(id, name, x, y));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -195,8 +208,8 @@ public class Port {
     public boolean store(Connection conn) {
 
         String sqlCommand =
-                "MERGE INTO " + TABLE_NAME + "(ID,NAME) KEY(ID) " +
-                "VALUES(" + ID + ",'" + NAME + "');";
+                "MERGE INTO " + TABLE_NAME + "(ID,NAME,X,Y) KEY(ID) " +
+                "VALUES("+ID+",'"+NAME+"',"+X+","+Y+");";
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
             stmt.executeUpdate();
@@ -213,23 +226,26 @@ public class Port {
      * Construct a new Port.
      * @param id ID of the Port.
      * @param name Name of the Port.
+     * @param x X coordinate of the Port.
+     * @param y Y coordinate of the Port.
      */
-    public Port(int id, String name) {
+    public Port(int id, String name, int x, int y) {
         this.ID = id;
         this.NAME = name;
+        this.X = x;
+        this.Y = y;
     }
 
-    /** Hashes the Port's ID and NAME. */
-    public int hashCode() { return Objects.hash(ID, NAME); }
+    public int hashCode() { return Objects.hash(ID); }
 
     public boolean equals(Object o)
     {
         if (!(o instanceof Port)) { return false; }
         Port p = (Port) o;
-        return p.ID == ID && p.NAME.equals(NAME);
+        return p.ID == ID;
     }
 
     public String toString() {
-        return "[PORT]\t" + ID + "\t" + NAME;
+        return "[PORT]\t" + ID + "\t" + NAME + "\t" + X + "\t" + Y;
     }
 }

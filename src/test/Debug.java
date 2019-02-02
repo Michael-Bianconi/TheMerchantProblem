@@ -1,6 +1,7 @@
 package test;
 
 import TMP.Commodity;
+import TMP.TMPDatabase;
 import org.h2.mvstore.DataUtils;
 
 import java.sql.Connection;
@@ -29,16 +30,16 @@ public class Debug {
     };
 
     public static void main(String args[]) {
-        try {
-            Class.forName(JDBC_DRIVER);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
-            debugCommodities(conn);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+        try (TMPDatabase db = new TMPDatabase(DB_URL)) {
+            Connection conn = db.getConnection();
+            db.createTables();
+            db.createCommodities(7);
+            db.createPorts(5);
+            db.createPortInventories(27);
+            db.createRoutes(20);
+            db.createRouteCosts(43);
+
+        } catch(Exception e) {e.printStackTrace();}
     }
 
     private static String createRandomString(int length) {
@@ -86,6 +87,5 @@ public class Debug {
         }
 
         return commodities;
-
     }
 }
