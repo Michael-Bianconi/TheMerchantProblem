@@ -38,6 +38,10 @@ public class Debug {
             db.createPortInventories(27);
             db.createRoutes(20);
             db.createRouteCosts(43);
+            db.createMerchants(3);
+            db.createMerchantInventories(18);
+            db.createVoyages(6);
+            db.createTransactions(39);
 
         } catch(Exception e) {e.printStackTrace();}
     }

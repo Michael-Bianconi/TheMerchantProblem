@@ -17,6 +17,9 @@ public class TMPDatabase implements AutoCloseable {
         public int id1;
         public int id2;
         public IDPair(int id1, int id2) { this.id1=id1; this.id2=id2; }
+        public String toString() {
+            return Integer.toString(id1)+" "+Integer.toString(id2);
+        }
     }
 
     private static final String JDBC_DRIVER = "org.h2.Driver";
@@ -132,7 +135,6 @@ public class TMPDatabase implements AutoCloseable {
             portPairs.remove(index);
 
             Route r = new Route(id, pair.id1, pair.id2);
-            System.out.println(r);
             r.store(conn);
             routes[id]=r;
         }
@@ -154,6 +156,79 @@ public class TMPDatabase implements AutoCloseable {
             costs[id] = c;
         }
         return costs;
+    }
+
+    public Merchant[] createMerchants(int num) {
+        ArrayList<Integer> portIDs = getColumnInt(Port.TABLE_NAME, "ID");
+        Random random = new Random();
+        Merchant[] merchants = new Merchant[num];
+        for (int id = 0; id < num; id++) {
+            String name = createRandomString(8);
+            int home = portIDs.get(random.nextInt(portIDs.size()-1));
+            int current = portIDs.get(random.nextInt(portIDs.size()-1));
+            int capacity = random.nextInt(1024);
+            Merchant m  = new Merchant(id, name, home, current, capacity);
+            m.store(conn);
+            merchants[id]=m;
+        }
+        return merchants;
+    }
+
+    public MerchantInventory[] createMerchantInventories(int num) {
+        ArrayList<IDPair> pairs = _merchantInventoryCartesian();
+        Random rand = new Random();
+        num = (num > pairs.size()) ? pairs.size() : num;
+        MerchantInventory[] invs = new MerchantInventory[num];
+        for (int id = 0; id < num; id++) {
+            int index = rand.nextInt(pairs.size()-1);
+            IDPair pair = pairs.get(index);
+            pairs.remove(index);
+            int amount = rand.nextInt(256);
+            MerchantInventory m =
+                    new MerchantInventory(id,pair.id1,pair.id2,amount);
+            invs[id] = m;
+            m.store(conn);
+        }
+        return invs;
+    }
+
+    public Voyage[] createVoyages(int num) {
+        ArrayList<IDPair> pairs = _voyageCartesian();
+        num = (num > pairs.size()) ? pairs.size() : num;
+        Random rand = new Random();
+        Voyage[] voyages = new Voyage[num];
+        for (int id = 0; id < num; id++) {
+            int index = rand.nextInt(pairs.size()-1);
+            IDPair pair = pairs.get(index);
+            pairs.remove(index);
+            int time = rand.nextInt();
+            Voyage v = new Voyage(id,pair.id1,pair.id2,time);
+            v.store(conn);
+            voyages[id] = v;
+        }
+        return voyages;
+    }
+
+    public Transaction[] createTransactions(int num) {
+        ArrayList<Integer> voyages =
+                getColumnInt(Voyage.TABLE_NAME, "ID");
+        ArrayList<IDPair> coms = _transactionCartesian();
+        System.out.println(coms);
+        Random rand = new Random();
+        Transaction[] trans = new Transaction[num];
+        for (int id = 0; id < num; id++) {
+            int voyage = voyages.get(rand.nextInt(voyages.size()-1));
+            IDPair pair = coms.get(rand.nextInt(coms.size()-1));
+            int comIn = pair.id1;
+            int comOut = pair.id2;
+            int amountIn = rand.nextInt(256);
+            int amountOut = rand.nextInt(256);
+            Transaction t =
+                    new Transaction(id,voyage,comIn,amountIn,comOut,amountOut);
+            t.store(conn);
+            trans[id] = t;
+        }
+        return trans;
     }
 
     public Connection getConnection() {return this.conn; }
@@ -202,6 +277,23 @@ public class TMPDatabase implements AutoCloseable {
         return pairs;
     }
 
+    private ArrayList<IDPair> _merchantInventoryCartesian() {
+
+        ArrayList<Integer> merchants =
+                getColumnInt(Merchant.TABLE_NAME, "ID");
+        ArrayList<Integer> coms =
+                getColumnInt(Commodity.TABLE_NAME, "ID");
+        ArrayList<IDPair> pairs = new ArrayList<>();
+
+        for (int s = 0; s < merchants.size(); s++) {
+            for (int e = 0; e < coms.size(); e++) {
+                pairs.add(new IDPair(merchants.get(s),coms.get(e)));
+            }
+        }
+
+        return pairs;
+    }
+
 
     private ArrayList<IDPair> _routeCartesian() {
 
@@ -214,6 +306,43 @@ public class TMPDatabase implements AutoCloseable {
             for (int e = 0; e < endPorts.size(); e++) {
                 if (s == e) {continue;}
                 pairs.add(new IDPair(startPorts.get(s),endPorts.get(e)));
+            }
+        }
+
+        return pairs;
+    }
+
+    public ArrayList<IDPair> _voyageCartesian() {
+
+        ArrayList<Integer> merchants =
+                getColumnInt(Merchant.TABLE_NAME, "ID");
+        ArrayList<Integer> ports =
+                getColumnInt(Port.TABLE_NAME, "ID");
+        ArrayList<IDPair> pairs = new ArrayList<>();
+
+        for (int s = 0; s < merchants.size(); s++) {
+            for (int e = 0; e < ports.size(); e++) {
+                pairs.add(new IDPair(merchants.get(s), ports.get(e)));
+            }
+        }
+
+        return pairs;
+    }
+
+    public ArrayList<IDPair> _transactionCartesian() {
+
+        ArrayList<Integer> coms1 =
+                getColumnInt(Commodity.TABLE_NAME, "ID");
+        ArrayList<Integer> coms2 =
+                getColumnInt(Commodity.TABLE_NAME, "ID");
+        ArrayList<IDPair> pairs = new ArrayList<>();
+
+        for (Integer i : coms1) {
+            for (Integer e : coms2) {
+                if (!i.equals(e)) {
+                    System.out.println("adding");
+                    pairs.add(new IDPair(i, e));
+                }
             }
         }
 

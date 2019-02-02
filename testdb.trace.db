@@ -103,3 +103,155 @@ Caused by: java.lang.IllegalStateException: The file is locked: nio:/home/mike/D
 	at org.h2.mvstore.FileStore.open(FileStore.java:173)
 	at org.h2.mvstore.MVStore.<init>(MVStore.java:347)
 	... 20 more
+2019-02-02 09:13:33 database: flush
+org.h2.message.DbException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
+	at org.h2.message.DbException.get(DbException.java:168)
+	at org.h2.message.DbException.convert(DbException.java:295)
+	at org.h2.mvstore.db.MVTableEngine$1.uncaughtException(MVTableEngine.java:95)
+	at org.h2.mvstore.MVStore.panic(MVStore.java:378)
+	at org.h2.mvstore.MVStore.<init>(MVStore.java:361)
+	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2930)
+	at org.h2.mvstore.db.MVTableEngine$Store.open(MVTableEngine.java:155)
+	at org.h2.mvstore.db.MVTableEngine.init(MVTableEngine.java:100)
+	at org.h2.engine.Database.getPageStore(Database.java:2476)
+	at org.h2.engine.Database.open(Database.java:697)
+	at org.h2.engine.Database.openDatabase(Database.java:276)
+	at org.h2.engine.Database.<init>(Database.java:270)
+	at org.h2.engine.Engine.openSession(Engine.java:64)
+	at org.h2.engine.Engine.openSession(Engine.java:176)
+	at org.h2.engine.Engine.createSessionAndValidate(Engine.java:154)
+	at org.h2.engine.Engine.createSession(Engine.java:137)
+	at org.h2.engine.Engine.createSession(Engine.java:27)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:354)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:116)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:100)
+	at org.h2.Driver.connect(Driver.java:69)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:677)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:228)
+	at TMP.TMPDatabase.<init>(TMPDatabase.java:31)
+	at test.Debug.main(Debug.java:33)
+Caused by: org.h2.jdbc.JdbcSQLException: General error: "java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]" [50000-196]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:345)
+	... 25 more
+Caused by: java.lang.IllegalStateException: The file is locked: nio:/home/mike/Dev/projects/TheMerchantProblem/testdb.mv.db [1.4.196/7]
+	at org.h2.mvstore.DataUtils.newIllegalStateException(DataUtils.java:765)
+	at org.h2.mvstore.FileStore.open(FileStore.java:173)
+	at org.h2.mvstore.MVStore.<init>(MVStore.java:347)
+	... 20 more
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(0,2,28,152,37,44);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(0,2,28,152,37,44); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(1,0,29,182,26,147);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(1,0,29,182,26,147); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(2,3,28,225,16,193);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(2,3,28,225,16,193); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(3,0,31,232,32,41);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(3,0,31,232,32,41); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(4,4,12,157,36,106);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(4,4,12,157,36,106); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(5,2,11,207,11,198);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(5,2,11,207,11,198); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(6,2,38,196,17,8);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(6,2,38,196,17,8); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(7,4,16,132,9,136);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(7,4,16,132,9,136); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(8,4,35,89,32,188);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(8,4,35,89,32,188); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(9,1,38,152,17,207);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(9,1,38,152,17,207); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(10,3,29,224,17,70);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(10,3,29,224,17,70); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(11,0,1,41,39,15);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(11,0,1,41,39,15); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(12,1,1,224,21,244);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(12,1,1,224,21,244); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(13,3,22,124,28,116);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(13,3,22,124,28,116); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(14,1,20,55,11,24);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(14,1,20,55,11,24); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(15,2,36,208,2,173);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(15,2,36,208,2,173); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(16,4,17,246,15,95);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(16,4,17,246,15,95); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(17,1,30,17,35,56);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(17,1,30,17,35,56); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(18,4,18,164,13,0);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(18,4,18,164,13,0); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(19,0,13,90,40,110);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(19,0,13,90,40,110); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(20,2,31,143,24,235);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(20,2,31,143,24,235); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(21,1,0,222,15,230);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(21,1,0,222,15,230); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(22,1,23,80,25,230);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(22,1,23,80,25,230); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(23,2,27,179,5,255);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(23,2,27,179,5,255); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(24,0,0,138,34,147);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(24,0,0,138,34,147); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(25,4,5,124,15,253);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(25,4,5,124,15,253); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(26,1,28,112,20,18);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(26,1,28,112,20,18); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(27,4,22,3,34,204);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(27,4,22,3,34,204); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(28,0,38,199,33,165);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(28,0,38,199,33,165); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(29,2,29,219,23,189);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(29,2,29,219,23,189); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(30,0,31,108,37,102);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(30,0,31,108,37,102); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(31,2,33,60,32,139);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(31,2,33,60,32,139); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(32,2,36,175,0,202);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(32,2,36,175,0,202); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(33,1,13,178,13,247);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(33,1,13,178,13,247); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(34,2,6,105,13,36);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(34,2,6,105,13,36); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(35,3,31,24,7,212);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(35,3,31,24,7,212); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(36,3,33,42,6,178);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(36,3,33,42,6,178); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(37,4,36,118,20,73);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(37,4,36,118,20,73); [42001-196]
+2019-02-02 09:18:58 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID[*],OUT_AMOUNT) VALUES(38,3,2,216,13,23);"; expected ",, )"; SQL statement:
+MERGE INTO TRANSACTIONS(ID,VOYAGE_ID,IN_ID,IN_AMOUNT OUT_ID,OUT_AMOUNT) VALUES(38,3,2,216,13,23); [42001-196]

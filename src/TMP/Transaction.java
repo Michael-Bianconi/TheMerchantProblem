@@ -227,7 +227,7 @@ public class Transaction {
     public boolean store(Connection conn) {
 
         String sqlCommand =
-                "MERGE INTO " + TABLE_NAME + "(ID,VOYAGE_ID,IN_ID,IN_AMOUNT " +
+                "MERGE INTO " + TABLE_NAME + "(ID,VOYAGE_ID,IN_ID,IN_AMOUNT," +
                         "OUT_ID,OUT_AMOUNT) " +
                 "VALUES("+ID+","+VOYAGE_ID+","+IN_ID+","+IN_AMOUNT+
                         ","+OUT_ID+","+OUT_AMOUNT+");";
