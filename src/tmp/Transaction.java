@@ -205,7 +205,7 @@ public class Transaction {
                         "AMOUNT,PRICE) " +
                 "VALUES("+ID+","+VOYAGE_ID+","+COMMODITY_ID+","+AMOUNT+
                         ","+PRICE+");";
-        System.out.println(sqlCommand);
+
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
             stmt.executeUpdate();
 

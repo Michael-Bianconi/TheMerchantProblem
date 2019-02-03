@@ -1,5 +1,6 @@
 package tmp;
 
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Random;
@@ -42,6 +43,16 @@ public class TMPDatabase implements AutoCloseable {
     @Override
     public void close() throws Exception {
         if (this.conn != null) {this.conn.close();}
+    }
+
+    /**
+     * Delete the database. Do this BEFORE creating a TMPDatabase object.
+     */
+    public static void reset(String URL) {
+        File db = new File(URL);
+        System.out.println(URL);
+
+        if (db.delete()) {System.out.println("DB RESET");}
     }
 
     public void createTables() {

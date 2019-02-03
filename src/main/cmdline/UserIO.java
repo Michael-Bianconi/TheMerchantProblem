@@ -1,420 +1,186 @@
 package main.cmdline;
 
-import tmp.*;
+import tmp.Commodity;
+import tmp.Merchant;
+import tmp.Port;
+import tmp.Route;
 
 import java.sql.Connection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
 
 /**
  * @author Michael Bianconi
- * @since 02-02-2019
- * This class handles the user interface.
+ * @since 02-03-2019
+ * This class parses User Input.
  */
 public class UserIO {
 
-    private static final String HELP_STRING =
-            "==================================================================\n" +
-                    "= Welcome to The Merchant Problem!                               =\n" +
-                    "=                                                                =\n" +
-                    "= Travel from Port to Port, buying and selling Commodities.      =\n" +
-                    "= Make as much profit as possible and return home.               =\n" +
-                    "= Commands:                                                      =\n" +
-                    "= \tMERCHANT? - Displays info about your merchant.               =\n" +
-                    "= \tPORT? [port] - Displays info about the given port.           =\n" +
-                    "= \tTRADE [in][amount] [out][amount] - Trade at the Port.        =\n" +
-                    "= \tTRAVEL [route] - Moves your Merchant along the Route.        =\n" +
-                    "= \tRETIRE - End your Voyage. Try to be at your Home Port.       =\n" +
-                    "= \tHELP - Displays this message.                                =\n" +
-                    "==================================================================\n";
+    private static Set<String> commands = new HashSet<>();
 
-    private static final String MERCHANT_INFO_STRING =
-            "==================================================================\n" +
-                    "= MERCHANT?\n" +
-                    "= ID:         %d\n" +
-                    "= NAME:       %s\n" +
-                    "= HOME PORT:  %s (ID=%d)\n" +
-                    "= CURRENT:    %s (ID=%d)\n" +
-                    "= CAPACITY:   %.2f/%d\n" +
-                    "= GOLD:       %d\n" +
-                    "= INVENTORY:\n%s" +       // use buildInventoryString(Merchant)
-                    "= VOYAGE:\n%s" +
-                    "==================================================================\n";
+    static {
+        commands.add("HELP");
+        commands.add("MERCHANT?");
+        commands.add("PORT?");
+        commands.add("BUY");
+        commands.add("SELL");
+        commands.add("TRAVEL");
+        commands.add("RETIRE");
+    }
 
-    private static final String MERCHANT_INVENTORY_INFO_STRING =
-            "=    " +
-                    "ID: %d\t" +
-                    "COMMODITY: %s\t" +
-                    "AMOUNT: %d\t" +
-                    "WEIGHT (PER UNIT): %.2f\t" +
-                    "WEIGHT (TOTAL): %.2f\t\n";
-
-    private static final String PORT_INFO_STRING =
-            "==================================================================\n" +
-                    "= PORT?\n" +
-                    "= ID:    %d\n" +
-                    "= NAME:  %s\n" +
-                    "= INVENTORY:\n%s" + // use buildInventoryString(Port)
-                    "= ROUTES:\n%s" + // use buildRoutes(Port)
-                    "==================================================================\n";
-
-    private static final String PORT_INVENTORY_INFO_STRING =
-            "=    " +
-                    "ID: %d\t" +
-                    "COMMODITY: %s\t" +
-                    "ON HAND: %d\t" +
-                    "BUY PRICE: %d\t" +
-                    "SELL PRICE: %d\t\n";
-
-    private static final String ROUTE_INFO_STRING =
-            "=    " +
-                    "ID: %s\t" +
-                    "START: %s(ID=%d)\t" +
-                    "END: %s(ID=%d)\n" +
-                    "=    Costs:\n%s"; // use buildRouteCostString(Route)
-
-    private static final String ROUTE_COST_INFO_STRING =
-            "=        " +
-                    "ID: %d\t" +
-                    "Route: %d\t" +
-                    "COMMODITY: %s(ID=%d)\t" +
-                    "Amount: %d\n";
-
-    private static final String VOYAGE_INFO_STRING =
-            "=    " +
-                    "ID: %d\t" +
-                    "MERCHANT: %s(ID=%d)\t" +
-                    "PORT: %s(ID=%d)\t" +
-                    "TIMESTAMP: %d\n" +
-                    "=    TRANSACTIONS:\n%s"; // use buildTransactionsString(Voyage)
-
-    private static final String TRANSACTION_INFO_STRING =
-            "=        " +
-                    "ID: %d\t" +
-                    "VOYAGE: %d\t" +
-                    "COMMODITY: %s(ID=%d)\t" +
-                    "AMOUNT: %d\t" +
-                    "PRICE: %d\n";
-
+    // Static class
+    private UserIO() {
+    }
 
     /**
-     * Builds a String containing information about all of a Merchant's
-     * inventories.
+     * Given String arguments (similar to main(String[] args), parse and
+     * execute the command. If invalid, print invalid.
      *
-     * @param m    Gets this Merchant's inventory info.
-     * @param conn Connection to the database.
-     * @return String
+     * @param args Input to parse.
+     * @param user The user's Merchant.
+     * @param conn The Connection to the database.
+     * @return Returns true if able to parse and execute.
      */
-    private static String buildInventoryString(Merchant m, Connection conn) {
-        Map<Integer, MerchantInventory> map =
-                m.retrieveAllMerchantInventories(conn);
-        StringBuilder builder = new StringBuilder();
+    public static boolean parse(
+            String[] args, Merchant user, Connection conn) {
 
-        for (Map.Entry<Integer, MerchantInventory> e : map.entrySet()) {
-            MerchantInventory i = e.getValue();
-            Commodity c = Commodity.retrieve(i.COMMODITY_ID, conn);
-            builder.append(
-                    String.format(
-                            MERCHANT_INVENTORY_INFO_STRING,
-                            i.ID, c.NAME, i.AMOUNT, c.WEIGHT, c.WEIGHT * i.AMOUNT
-                    )
-            );
+        try {
+
+            if (args.length == 0) {
+                return false;
+            }
+            if (!commands.contains(args[0].toUpperCase())) {
+                System.out.println("Unknown command!");
+                return false;
+            }
+            switch (args[0].toUpperCase()) {
+
+                case "HELP": // $ HELP
+                    Commands.displayHelp();
+                    return true;
+
+                case "MERCHANT?": // $ MERCHANT
+                    Commands.displayMerchant(user, conn);
+                    return true;
+
+                case "PORT?": // $ PORT? [ID]
+                    if (args.length == 1) {
+                        Port current = user.retrieveCurrentPort(conn);
+                        if (current == null) {
+                            System.out.println("Somehow, you're not at a Port!");
+                            return false;
+
+                        } else {
+                            Commands.displayPort(current, conn);
+                            return true;
+                        }
+
+                    } else {
+                        Port p = Port.retrieve(Integer.parseInt(args[1]), conn);
+                        if (p == null) {
+                            System.out.println("Unknown port!");
+                            return false;
+
+                        } else {
+                            Commands.displayPort(p, conn);
+                            return true;
+                        }
+                    }
+
+                case "BUY": // $ BUY <COMMODITY> <AMOUNT>
+
+                    if (args.length != 3) {
+                        System.out.println("$ BUY <AMOUNT> <COMMODITY ID>");
+                        return false;
+                    }
+                    Port p = user.retrieveCurrentPort(conn);
+
+                    if (p == null) {
+                        System.out.println("Somehow, you're not at a Port!");
+                        return false;
+                    }
+                    Commodity buyCom =
+                            Commodity.retrieve(Integer.parseInt(args[2]), conn);
+                    int buyAmount = Integer.parseInt(args[1]);
+
+                    // Unsuccessful trade
+                    if (Commands.trade(
+                            user, p, buyCom, buyAmount, conn, true) == null) {
+                        System.out.println("Couldn't trade!");
+                        return false;
+                    }
+
+                    return true;
+
+                case "SELL": // $ SELL <AMOUNT> <COMMODITY ID>
+
+                    if (args.length != 3) {
+                        System.out.println("$ SELL <COMMODITY ID> <AMOUNT>");
+                        return false;
+                    }
+                    Port port = user.retrieveCurrentPort(conn);
+                    if (port == null) {
+                        System.out.println("Somehow, you're not at a Port!");
+                        return false;
+                    }
+                    Commodity sellCom =
+                            Commodity.retrieve(Integer.parseInt(args[2]), conn);
+                    int sellAmount = -Integer.parseInt(args[1]);
+
+                    // Unsuccessful trade
+                    if (Commands.trade(
+                            user, port, sellCom, sellAmount, conn, true) == null) {
+                        System.out.println("Couldn't trade!");
+                        return false;
+                    }
+
+                    return true;
+
+                case "TRAVEL": // $ TRAVEL <ROUTE>
+
+                    if (args.length != 2) {
+                        System.out.println("$ TRAVEL <ROUTE ID>");
+                        return false;
+                    }
+                    Route r = Route.retrieve(Integer.parseInt(args[1]), conn);
+                    if (Commands.travel(user, r, conn, true) == null) {
+                        System.out.println("Couldn't travel!");
+                        return false;
+                    }
+                    return true;
+
+                case "RETIRE": // $ RETIRE
+                    System.exit(0);
+
+                default:
+                    System.out.println("Unknown command!");
+                    return false;
+            }
+
+        } catch(NumberFormatException e) {
+            System.out.println("Wrong format!");
+            return false;
         }
-        return builder.toString();
     }
-
 
     /**
-     * Builds a String containing information about all of a Port's
-     * inventories.
-     *
-     * @param p    Gets this Port's inventory info.
-     * @param conn Connection to the database.
-     * @return String
-     */
-    private static String buildInventoryString(Port p, Connection conn) {
-        Map<Integer, PortInventory> map =
-                p.retrievePortInventories(conn);
-        StringBuilder builder = new StringBuilder();
-
-        for (Map.Entry<Integer, PortInventory> e : map.entrySet()) {
-            PortInventory i = e.getValue();
-            Commodity c = i.retrieveCommodity(conn);
-            builder.append(
-                    String.format(
-                            PORT_INVENTORY_INFO_STRING,
-                            i.ID, c.NAME, i.ON_HAND, i.BUY_PRICE, i.SELL_PRICE
-                    )
-            );
-        }
-        return builder.toString();
-    }
-
-
-    private static String buildRouteCostsString(Route r, Connection conn) {
-
-        Map<Integer, RouteCost> map =
-                r.retrieveRouteCosts(conn);
-        StringBuilder builder = new StringBuilder();
-
-        for (Map.Entry<Integer, RouteCost> e : map.entrySet()) {
-            RouteCost cost = e.getValue();
-            Commodity com = cost.retrieveCommodity(conn);
-
-            builder.append(
-                    String.format(
-                            ROUTE_COST_INFO_STRING,
-                            cost.ID,
-                            r.ID,
-                            com.NAME, com.ID,
-                            cost.AMOUNT
-                    )
-            );
-        }
-        return builder.toString();
-    }
-
-    private static String buildRoutesString(Port p, Connection conn) {
-        Map<Integer, Route> map =
-                p.retrieveRoutesOut(conn);
-        StringBuilder builder = new StringBuilder();
-
-        for (Map.Entry<Integer, Route> e : map.entrySet()) {
-            Route r = e.getValue();
-            Port start = r.retrieveStartPort(conn);
-            Port end = r.retrieveEndPort(conn);
-
-            builder.append(
-                    String.format(
-                            ROUTE_INFO_STRING,
-                            r.ID,
-                            start.NAME, start.ID,
-                            end.NAME, end.ID,
-                            buildRouteCostsString(r, conn)
-                    )
-            );
-        }
-        return builder.toString();
-    }
-
-
-    private static String buildTransactionsString(Voyage v, Connection conn) {
-        Map<Integer, Transaction> map =
-                v.retrieveAllTransactions(conn);
-        StringBuilder builder = new StringBuilder();
-
-        for (Map.Entry<Integer, Transaction> e : map.entrySet()) {
-            Transaction t = e.getValue();
-            Commodity com = t.retrieveCommodity(conn);
-
-            //if (com!=null) {
-            builder.append(
-                    String.format(
-                            TRANSACTION_INFO_STRING,
-                            t.ID,
-                            v.ID,
-                            com.NAME, com.ID,
-                            t.AMOUNT,
-                            t.PRICE
-                    )
-            );
-
-            // }
-        }
-        return builder.toString();
-    }
-
-    private static String buildVoyageString(Merchant m, Connection conn) {
-
-        Map<Integer, Voyage> map =
-                m.retrieveAllVoyages(conn);
-
-        StringBuilder builder = new StringBuilder();
-
-        for (Map.Entry<Integer, Voyage> e : map.entrySet()) {
-
-            Voyage v = e.getValue();
-            Port p = v.retrievePort(conn);
-
-            builder.append(
-                    String.format(
-                            VOYAGE_INFO_STRING,
-                            v.ID,
-                            m.NAME, m.ID,
-                            p.NAME, p.ID,
-                            v.TIMESTAMP,
-                            buildTransactionsString(v, conn)
-                    )
-            );
-        }
-
-        return builder.toString();
-    }
-
-
-    /**
-     * Displays the given Merchant's associated fields, along with his or her
-     * inventory.
-     *
-     * @param m    Merchant to display.
+     * Continually prompts for user input.
+     * @param user The Merchant the user is controlling.
      * @param conn Connection to the database.
      */
-    public static void commandMerchantDisplay(Merchant m, Connection conn) {
+    public static void inputPrompt(Merchant user, Connection conn) {
 
-        Port h = m.retrieveHomePort(conn);
-        Port c = m.retrieveCurrentPort(conn);
-        float used = m.getUsedCapacity(conn);
-        String out = String.format(
-                MERCHANT_INFO_STRING,
-                m.ID, m.NAME,
-                h.NAME, h.ID,
-                c.NAME, c.ID,
-                used, m.CAPACITY, m.GOLD,
-                buildInventoryString(m, conn),
-                buildVoyageString(m, conn)
-        );
+        int tokenBuffer = 100;
+        Scanner s = new Scanner(System.in);
+        String[] array = new String[tokenBuffer];
 
-        System.out.println(out);
-    }
+        while (true) {
 
-    /**
-     * Displays the Port's info and inventory.
-     *
-     * @param p    Port to display.
-     * @param conn Connection to the database.
-     */
-    public static void commandPortDisplay(Port p, Connection conn) {
-        String out = String.format(
-                PORT_INFO_STRING,
-                p.ID, p.NAME,
-                buildInventoryString(p, conn),
-                buildRoutesString(p, conn)
-        );
-        System.out.println(out);
-    }
-
-    /**
-     * The Merchant trades Commodities with the Port. Does NOT generate
-     * a Transaction object. For the transaction to be successful, the
-     * Merchant and Port must have the required Commodities on hand.
-     * Additionally, the new weight of the Merchant's inventory cannot
-     * exceed his or her capacity.
-     *
-     * @param m      Merchant.
-     * @param p      Port.
-     * @param com    Commodity bought from the Port.
-     * @param amount Amount to buy or sell (negative = sell).
-     * @param conn   Connection to the database.
-     * @param update If true, update the database.
-     * @return Returns a Transaction if successful, or null.
-     */
-    public static Transaction commandTrade(
-            Merchant m, Port p, Commodity com,
-            int amount, Connection conn, boolean update) {
-
-        if (!m.canTrade(p, com, amount, conn)) {
-            return null;
+            System.out.print("$ ");
+            String[] tokens = s.nextLine().split(" ");
+            parse(tokens, user, conn);
         }
-
-        PortInventory pInv =
-                p.retrievePortInventoryByCommodity(com.ID, conn);
-
-        MerchantInventory mInv =
-                m.retrieveMerchantInventoryByCommodity(com.ID, conn);
-
-        int totalPrice = 0;
-
-        // selling
-        if (amount < 0) {
-
-            totalPrice = pInv.SELL_PRICE * amount;
-            m.GOLD -= totalPrice;
-            mInv.AMOUNT += amount;
-            pInv.ON_HAND -= amount;
-        }
-
-        // buying
-        else {
-
-            totalPrice = pInv.BUY_PRICE * amount;
-            m.GOLD -= totalPrice;
-            mInv.AMOUNT += amount;
-            pInv.ON_HAND -= amount;
-        }
-
-        // create Transaction
-        Voyage voyage =
-                m.getLatestVoyage(conn);
-
-        if (voyage == null) {
-            voyage = new Voyage(m.ID, p.ID, TMPDatabase.uniqueID());
-        }
-
-        Transaction t =
-                new Transaction(voyage.ID, com.ID, amount, totalPrice);
-
-        // update the database
-        if (update) {
-            m.store(conn);
-            mInv.store(conn);
-            pInv.store(conn);
-            voyage.store(conn);
-            t.store(conn);
-        }
-
-        return t;
-
-    }
-
-
-    /**
-     * Merchants can travel from Port to Port using Routes. They can
-     * do so by specifying the Route to take. However, they must be
-     * able to pay the associated costs.
-     *
-     * @param m      Merchant traveling.
-     * @param r      Route the Merchant is using.
-     * @param conn   Connection to the database.
-     * @param update If true, will store the new information in
-     *               the database.
-     * @return Returns a generated Voyage object, or null.
-     */
-    public static Voyage commandTravel(
-            Merchant m, Route r, Connection conn, boolean update) {
-
-        if (!m.canTravel(r,conn)) {return null;}
-
-        Map<Integer, RouteCost> costs =
-                r.retrieveRouteCosts(conn);
-
-        // Check each RouteCost
-        for (Map.Entry<Integer, RouteCost> e : costs.entrySet()) {
-
-            RouteCost cost = e.getValue();
-            MerchantInventory commodity =
-                    m.retrieveMerchantInventoryByCommodity(
-                            cost.COMMODITY_ID, conn);
-
-
-            // Pay the cost
-            commodity.AMOUNT -= cost.AMOUNT;
-            if (update) {commodity.store(conn);}
-        }
-
-        // Go to end port
-        m.CURRENT_PORT = r.END_PORT;
-        if (update) {m.store(conn);}
-
-        // Generate Voyage
-        Voyage voyage = new Voyage(m.ID,m.CURRENT_PORT,TMPDatabase.uniqueID());
-        if (update) {voyage.store(conn);}
-
-        return voyage;
-    }
-
-
-    /** Prints the Help message. */
-    public static void commandHelp() {
-        System.out.println(HELP_STRING);
     }
 }
-

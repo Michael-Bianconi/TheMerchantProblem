@@ -1,10 +1,9 @@
 package test;
 
-import main.cmdline.UserIO;
+import main.cmdline.Commands;
 import tmp.*;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 public class TradeDebug {
 
@@ -53,18 +52,18 @@ public class TradeDebug {
             Merchant cortez = Merchant.retrieve(6,conn);
             Port current = cortez.retrieveCurrentPort(conn);
 
-            UserIO.commandMerchantDisplay(cortez, conn);
-            UserIO.commandPortDisplay(current, conn);
+            Commands.displayMerchant(cortez, conn);
+            Commands.displayPort(current, conn);
 
             System.out.println("Buying 5 Silk");
-            UserIO.commandTrade(cortez, current, silk, 5, conn, true);
-            UserIO.commandMerchantDisplay(cortez, conn);
-            UserIO.commandPortDisplay(current, conn);
+            Commands.trade(cortez, current, silk, 5, conn, true);
+            Commands.displayMerchant(cortez, conn);
+            Commands.displayPort(current, conn);
 
             System.out.println("Selling 10 Silk");
-            UserIO.commandTrade(cortez, current, silk, -10, conn, true);
-            UserIO.commandMerchantDisplay(cortez, conn);
-            UserIO.commandPortDisplay(current, conn);
+            Commands.trade(cortez, current, silk, -10, conn, true);
+            Commands.displayMerchant(cortez, conn);
+            Commands.displayPort(current, conn);
 
 
 
