@@ -34,6 +34,23 @@ public class Merchant {
     /** How much weight the Merchant is capable of carrying at once. */
     public final int CAPACITY;
 
+    /** How much Gold this Merchant has. */
+    public int GOLD;
+
+    /**
+     * Constructs a new Merchant.
+     *
+     * @param name Name of the Merchant.
+     * @param home ID of the Merchant's Home Port.
+     * @param current ID of the Merchant's Current Port.
+     * @param capacity How much weight the Merchant can hold.
+     * @param gold How much Gold this Merchant has.
+     */
+    public Merchant(
+            String name, int home, int current, int capacity, int gold) {
+        this(TMPDatabase.uniqueID(), name, home, current, capacity, gold);
+    }
+
     /**
      * Constructs a new Merchant.
      *
@@ -42,13 +59,17 @@ public class Merchant {
      * @param home ID of the Merchant's Home Port.
      * @param current ID of the Merchant's Current Port.
      * @param capacity How much weight the Merchant can hold.
+     * @param gold How much Gold this Merchant has.
      */
-    public Merchant(int id, String name, int home, int current, int capacity) {
+    public Merchant(
+            int id, String name, int home,
+            int current, int capacity, int gold) {
         ID = id;
         NAME = name;
         HOME_PORT = home;
         CURRENT_PORT = current;
         CAPACITY = capacity;
+        GOLD = gold;
     }
 
     /**
@@ -65,6 +86,7 @@ public class Merchant {
                         "HOME_PORT      INTEGER             NOT NULL," +
                         "CURRENT_PORT   INTEGER             NOT NULL," +
                         "CAPACITY       INTEGER             NOT NULL," +
+                        "GOLD           INTEGER             NOT NULL," +
                         "FOREIGN KEY(HOME_PORT) REFERENCES " +
                         Port.TABLE_NAME + "(ID)," +
                         "FOREIGN KEY(CURRENT_PORT) REFERENCES " +
@@ -83,10 +105,7 @@ public class Merchant {
     public boolean equals(Object o) {
         if (!(o instanceof Merchant)) { return false; }
         Merchant m = (Merchant) o;
-        return m.ID == ID
-            && m.NAME.equals(NAME)
-            && m.HOME_PORT == HOME_PORT
-            && m.CAPACITY == CAPACITY;
+        return m.ID == ID;
     }
 
     public int hashCode() { return Objects.hash(ID,NAME,HOME_PORT,CAPACITY); }
@@ -100,12 +119,6 @@ public class Merchant {
      */
     public static Merchant retrieve(int id, Connection conn) {
         // Initialize variables
-        int numResults = 0;
-        int merchantID = -1;
-        String name = "";
-        int home = -1;
-        int current = -1;
-        int capacity = -1;
         String sqlCommand =
                 "SELECT * FROM " + TABLE_NAME + " WHERE ID=" + id + ";";
 
@@ -114,30 +127,54 @@ public class Merchant {
 
             // Get each field. If there's more than one row, something's wrong.
             ResultSet set = stmt.executeQuery();
-            while (set.next()) {
-                if (numResults > 1) {
-                    return null;
-                }
+            set.next();
+            int merchantID = set.getInt("ID");
+            String name = set.getString("NAME");
+            int home = set.getInt("HOME_PORT");
+            int current = set.getInt("CURRENT_PORT");
+            int capacity = set.getInt("CAPACITY");
+            int gold = set.getInt("GOLD");
+            return new Merchant(
+                    merchantID, name, home, current, capacity, gold);
 
-                merchantID = set.getInt("ID");
-                name = set.getString("NAME");
-                home = set.getInt("HOME_PORT");
-                current = set.getInt("CURRENT_PORT");
-                capacity = set.getInt("CAPACITY");
-                numResults++;
-            }
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }
+    }
 
-        // There were no rows in the table with that ID
-        if (numResults == 0) {
+    /**
+     * Retrieves a single MerchantInventory, based on its commodity.
+     * @param id ID of the commodity.
+     * @param conn Connection to the database.
+     * @return Returns the MerchantInventory, or null.
+     */
+    public MerchantInventory retrieveMerchantInventoryByCommodity(
+            int id, Connection conn) {
+
+        String sqlCommand =
+                "SELECT * FROM " + TABLE_NAME +
+                " WHERE MERCHANT_ID="+ID+",COMMODITY_ID="+id+";";
+
+        // Execute the statement
+        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
+
+            // Get each field. If there's more than one row, something's wrong.
+            ResultSet set = stmt.executeQuery();
+            set.next();
+            int costID = set.getInt("ID");
+            int merchantID = set.getInt("MERCHANT_ID");
+            int commodityID = set.getInt("COMMODITY_ID");
+            int amount = set.getInt("AMOUNT");
+            return new MerchantInventory(
+                    costID, merchantID, commodityID, amount);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
             return null;
         }
-
-        return new Merchant(merchantID, name, home, current, capacity);
     }
+
 
     /**
      * Retrieves ALL Merchants from the table and stores them in a HashMap.
@@ -163,8 +200,9 @@ public class Merchant {
                 int home = set.getInt("HOME_PORT");
                 int current = set.getInt("CURRENT_PORT");
                 int capacity = set.getInt("CAPACITY");
+                int gold = set.getInt("GOLD");
                 map.put(merchantID, new Merchant(
-                        merchantID,name,home,current,capacity));
+                        merchantID,name,home,current,capacity,gold));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -276,9 +314,9 @@ public class Merchant {
 
         String sqlCommand =
                 "MERGE INTO " + TABLE_NAME +
-                        "(ID,NAME,HOME_PORT,CURRENT_PORT,CAPACITY) " +
+                        "(ID,NAME,HOME_PORT,CURRENT_PORT,CAPACITY,GOLD) " +
                 "VALUES("+ID+",'"+NAME+"',"+HOME_PORT+","+CURRENT_PORT+"," +
-                        CAPACITY+");";
+                        CAPACITY+","+GOLD+");";
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
             stmt.executeUpdate();
@@ -313,5 +351,74 @@ public class Merchant {
         }
 
         return total;
+    }
+
+    /**
+     * @param conn Connection to the database.
+     * @return Returns this Merchant's most recent Voyage (the
+     * voyage with the largest timestamp).
+     */
+    public Voyage getLatestVoyage(Connection conn) {
+        String command = "SELECT ID, MAX(TIMESTAMP) FROM " +
+                Voyage.TABLE_NAME + " WHERE MERCHANT_ID="+ID+");";
+
+        try (PreparedStatement stmt = conn.prepareStatement(command)) {
+            ResultSet set = stmt.executeQuery();
+            return Voyage.retrieve(set.getInt("ID"),conn);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Runs through the necessary conditions for trading a commodity
+     * with a port. They must have enough available, they must have
+     * enough Gold, and the Merchant must, if buying, have
+     * enough capacity to carry the new Commodities.
+     * @param port Port to trade with.
+     * @param com Commodity to trade.
+     * @param amount Amount to trade (- for selling, + for buying).
+     * @param conn Connection to the database.
+     * @return Returns true if able to trade.
+     */
+    public boolean canTrade(
+            Port port, Commodity com, int amount, Connection conn) {
+
+        PortInventory pInv =
+                port.retrievePortInventoryByCommodity(com.ID, conn);
+
+        // the port does not trade that commodity
+        if (pInv == null) {return false;}
+
+        // buying
+        if (amount > 0) {
+
+            // the port doesn't have enough of that commodity
+            if (pInv.ON_HAND < amount) {return false;}
+
+            // the merchant doesn't have enough Gold
+            if (pInv.BUY_PRICE*amount > GOLD) {return false;}
+
+            // the merchant must have the capacity for this commodity
+            return getUsedCapacity(conn)+(com.WEIGHT*amount) > CAPACITY;
+
+            // selling
+        } else if (amount < 0) {
+
+            amount = -amount; // flip it to positive
+
+            MerchantInventory mInv =
+                    retrieveMerchantInventoryByCommodity(com.ID, conn);
+
+            // Merchant doesn't have this commodity.
+            if (mInv == null) {return false;}
+
+            // The Merchant doesn't have enough of this commodity
+            return mInv.AMOUNT >= amount;
+        }
+
+        return true;
     }
 }

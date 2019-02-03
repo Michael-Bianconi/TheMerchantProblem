@@ -35,6 +35,19 @@ public class Voyage {
      * Constructs a new Voyage. Note: the timestamp does not (and maybe
      * should not) be the actual time. It only needs to be greater than
      * that of the previous Voyage.
+     *
+     * @param merchant ID of the Merchant.
+     * @param port ID of the Port.
+     * @param timestamp Voyage's timestamp.
+     */
+    public Voyage(int merchant, int port, int timestamp) {
+        this(TMPDatabase.uniqueID(), merchant, port, timestamp);
+    }
+
+    /**
+     * Constructs a new Voyage. Note: the timestamp does not (and maybe
+     * should not) be the actual time. It only needs to be greater than
+     * that of the previous Voyage.
      * @param id ID of the Voyage.
      * @param merchant ID of the Merchant.
      * @param port ID of the Port.
@@ -172,12 +185,10 @@ public class Voyage {
             while (set.next()) {
                 int ID = set.getInt("ID");
                 int voyage = set.getInt("VOYAGE_ID");
-                int inID = set.getInt("IN_ID");
-                int inAmount = set.getInt("IN_AMOUNT");
-                int outID = set.getInt("OUT_ID");
-                int outAmount = set.getInt("OUT_AMOUNT");
-                map.put(ID, new Transaction(ID,voyage,inID,inAmount,
-                        outID,outAmount));
+                int com = set.getInt("COMMODITY_ID");
+                int amount = set.getInt("AMOUNT");
+                int price = set.getInt("PRICE");
+                map.put(ID, new Transaction(ID,voyage,com,amount,price));
             }
         } catch (SQLException e) {
             e.printStackTrace();

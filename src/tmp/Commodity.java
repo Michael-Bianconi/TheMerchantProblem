@@ -142,10 +142,20 @@ public class Commodity {
     }
 
 
+    /**
+     * Construct the Commodity with a guaranteed unique ID.
+     * @param name Name of the ID.
+     * @param weight Weight of the commodity.
+     */
+    public Commodity(String name, float weight) {
+        this(TMPDatabase.uniqueID(), name, weight);
+    }
 
     /**
      * Construct the Commodity.
-     * @param id The ID of this commodity.
+     * @param id The ID of this commodity. This method should
+     *           only be called when retrieving from the
+     *           database, to ensure the ID's uniqueness.
      * @param name The NAME of this commodity.
      * @param weight The WEIGHT of this commodity, per unit.
      */

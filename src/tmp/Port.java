@@ -13,7 +13,8 @@ import java.util.Objects;
  * @since 01/29/2019
  *
  * Ports hold Commodities that are bought and sold to Merchants. Merchants
- * travel from one to another using Routes.
+ * travel from one to another using Routes. Ports have a functionally
+ * unlimited amount of gold.
  */
 public class Port {
 
@@ -94,6 +95,57 @@ public class Port {
         if (numResults == 0) { return null; }
 
         return new Port(in_id, name, x, y);
+    }
+
+    /**
+     * Retrieves a single PortInventory, based on its commodity.
+     * @param id ID of the commodity.
+     * @param conn Connection to the database.
+     * @return Returns the PortInventory, or null.
+     */
+    public PortInventory retrievePortInventoryByCommodity(
+            int id, Connection conn) {
+        // Initialize variables
+        int numResults = 0;
+        int in_id = -1;
+        int pID = -1;
+        int cID = -1;
+        int onHand = -1;
+        int buy = -1;
+        int sell = -1;
+        String sqlCommand =
+        "SELECT * FROM " + PortInventory.TABLE_NAME +
+        " WHERE PORT_ID="+ID+",COMMODITY_ID="+id+";";
+
+        // Execute the statement
+        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
+
+            // Get each field. If there's more than one row, something's wrong.
+            ResultSet set = stmt.executeQuery();
+            while (set.next()) {
+                if (numResults > 1) {
+                    return null;
+                }
+
+                in_id = set.getInt("ID");
+                pID = set.getInt("PORT_ID");
+                cID = set.getInt("COMMODITY_ID");
+                onHand = set.getInt("ON_HAND");
+                buy = set.getInt("BUY_PRICE");
+                sell = set.getInt("SELL_PRICE");
+                numResults++;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        // There were no rows in the table with that ID
+            if (numResults == 0) {
+            return null;
+        }
+
+        return new PortInventory(in_id, pID, cID, onHand, buy, sell);
     }
 
 
@@ -221,6 +273,17 @@ public class Port {
         return true;
     }
 
+    /**
+     * Constructs a new Route.
+     * @param name Name of the Port.
+     * @param x X coordinate of the Port.
+     * @param y Y coordinate of the Port.
+     */
+    public Port(
+            String name, int x, int y) {
+
+        this(TMPDatabase.uniqueID(), name, x, y);
+    }
 
     /**
      * Construct a new Port.

@@ -25,7 +25,7 @@ public class MerchantInventory {
     public final int COMMODITY_ID;
 
     /** Amount that must be paid. */
-    public final int AMOUNT;
+    public int AMOUNT;
 
     /**
      * Creates the table if it doesn't already exist.
@@ -58,14 +58,11 @@ public class MerchantInventory {
     public boolean equals(Object o) {
         if (!(o instanceof MerchantInventory)) { return false; }
         MerchantInventory r = (MerchantInventory) o;
-        return r.ID == ID
-                && r.MERCHANT_ID == MERCHANT_ID
-                && r.COMMODITY_ID == COMMODITY_ID
-                && r.AMOUNT == AMOUNT;
+        return r.ID == ID;
     }
 
     public int hashCode() {
-        return Objects.hash(ID,MERCHANT_ID,COMMODITY_ID,AMOUNT);
+        return Objects.hash(ID);
     }
 
     /**
@@ -167,6 +164,17 @@ public class MerchantInventory {
     public Commodity retrieveCommodity(Connection conn) {
 
         return Commodity.retrieve(COMMODITY_ID, conn);
+    }
+
+    /**
+     * Constructs a new Route.
+     * @param merchant ID of the Route.
+     * @param commodity ID of the associated Commodity.
+     * @param amount Amount required to travel.
+     */
+    public MerchantInventory(
+            int merchant, int commodity, int amount) {
+        this(TMPDatabase.uniqueID(), merchant, commodity, amount);
     }
 
     /**

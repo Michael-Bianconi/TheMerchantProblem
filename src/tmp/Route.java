@@ -198,6 +198,16 @@ public class Route {
 
     /**
      * Constructs a new Route.
+     * @param startID ID of the starting Port.
+     * @param endID ID of the destination Port.
+     */
+    public Route(int startID, int endID) {
+        this(TMPDatabase.uniqueID(), startID, endID);
+    }
+
+
+    /**
+     * Constructs a new Route.
      * @param id ID of the Route.
      * @param startID ID of the starting Port.
      * @param endID ID of the destination Port.

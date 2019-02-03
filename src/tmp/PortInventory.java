@@ -216,6 +216,20 @@ public class PortInventory {
     /**
      * Construct a new PortInventory.
      *
+     * @param pID    ID of the Port.
+     * @param cID    ID of the Commodity.
+     * @param onHand Amount of the commodity available to buy.
+     * @param buy    The cost of buying the commodity from the Port.
+     * @param sell   The cost of selling the commodity to the Port.
+     */
+    public PortInventory(
+            int pID, int cID, int onHand, int buy, int sell) {
+        this(TMPDatabase.uniqueID(), pID, cID, onHand, buy, sell);
+    }
+
+    /**
+     * Construct a new PortInventory.
+     *
      * @param id     ID of the PortInventory.
      * @param pID    ID of the Port.
      * @param cID    ID of the Commodity.

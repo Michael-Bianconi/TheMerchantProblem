@@ -172,6 +172,16 @@ public class RouteCost {
 
     /**
      * Constructs a new Route.
+     * @param routeID ID of the Route.
+     * @param commodityID ID of the associated Commodity.
+     * @param amount Amount required to travel.
+     */
+    public RouteCost(int routeID, int commodityID, int amount) {
+        this(TMPDatabase.uniqueID(), routeID, commodityID, amount);
+    }
+
+    /**
+     * Constructs a new Route.
      * @param id ID of the Route.
      * @param routeID ID of the Route.
      * @param commodityID ID of the associated Commodity.

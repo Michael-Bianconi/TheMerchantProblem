@@ -24,13 +24,20 @@ public class TMPDatabase implements AutoCloseable {
     private static final String USER = "USER";
     private static final String PASS = "PASSWORD";
     private Connection conn;
-    private int numCommodities;
+    private static int UNIQUE_ID = 0;
 
     public TMPDatabase(String dbName) throws Exception {
 
         Class.forName(JDBC_DRIVER);
         this.conn = DriverManager.getConnection(dbName, USER, PASS);
     }
+
+    /**
+     * Generates a unique identifier. Starts at 0. Increments by one
+     * each time it's called.
+     * @return Returns a guaranteed unique ID.
+     */
+    public static int uniqueID() {return UNIQUE_ID++;}
 
     @Override
     public void close() throws Exception {
@@ -71,11 +78,10 @@ public class TMPDatabase implements AutoCloseable {
         for (int i = 0; i < num; i++) {
             float weight = rand.nextFloat() * 100;
             String name = createRandomString(5);
-            Commodity c = new Commodity(i, name, weight);
+            Commodity c = new Commodity(name, weight);
             c.store(conn);
             commodities[i]=c;
         }
-        this.numCommodities = num;
         return commodities;
     }
 
@@ -86,7 +92,7 @@ public class TMPDatabase implements AutoCloseable {
             int x = rand.nextInt(100);
             int y = rand.nextInt(100);
             String name = createRandomString(7);
-            Port p = new Port(i,name,x,y);
+            Port p = new Port(name,x,y);
             p.store(conn);
             ports[i]=p;
         }
@@ -110,7 +116,7 @@ public class TMPDatabase implements AutoCloseable {
             int buy = rand.nextInt(256);
             int sell = rand.nextInt(256);
             PortInventory inv =
-                    new PortInventory(id, portID, comID, onHand, buy, sell);
+                    new PortInventory(portID, comID, onHand, buy, sell);
             invs[id] = inv;
             inv.store(conn);
         }
@@ -132,7 +138,7 @@ public class TMPDatabase implements AutoCloseable {
             IDPair pair = portPairs.get(index);
             portPairs.remove(index);
 
-            Route r = new Route(id, pair.id1, pair.id2);
+            Route r = new Route(pair.id1, pair.id2);
             r.store(conn);
             routes[id]=r;
         }
@@ -149,7 +155,7 @@ public class TMPDatabase implements AutoCloseable {
             IDPair pair = pairs.get(index);
             pairs.remove(index);
             int amount = rand.nextInt(256);
-            RouteCost c = new RouteCost(id, pair.id1, pair.id2, amount);
+            RouteCost c = new RouteCost(pair.id1, pair.id2, amount);
             c.store(conn);
             costs[id] = c;
         }
@@ -165,7 +171,8 @@ public class TMPDatabase implements AutoCloseable {
             int home = portIDs.get(random.nextInt(portIDs.size()));
             int current = portIDs.get(random.nextInt(portIDs.size()));
             int capacity = random.nextInt(1024);
-            Merchant m  = new Merchant(id, name, home, current, capacity);
+            int gold = random.nextInt(20000);
+            Merchant m  = new Merchant(name, home, current, capacity,gold);
             m.store(conn);
             merchants[id]=m;
         }
@@ -183,7 +190,7 @@ public class TMPDatabase implements AutoCloseable {
             pairs.remove(index);
             int amount = rand.nextInt(256);
             MerchantInventory m =
-                    new MerchantInventory(id,pair.id1,pair.id2,amount);
+                    new MerchantInventory(pair.id1,pair.id2,amount);
             invs[id] = m;
             m.store(conn);
         }
@@ -200,7 +207,7 @@ public class TMPDatabase implements AutoCloseable {
             IDPair pair = pairs.get(index);
             pairs.remove(index);
             int time = rand.nextInt(100);
-            Voyage v = new Voyage(id,pair.id1,pair.id2,time);
+            Voyage v = new Voyage(pair.id1,pair.id2,time);
             v.store(conn);
             voyages[id] = v;
         }
@@ -210,20 +217,19 @@ public class TMPDatabase implements AutoCloseable {
     public Transaction[] createTransactions(int num) {
         ArrayList<Integer> voyages =
                 getColumnInt(Voyage.TABLE_NAME, "ID");
-        System.out.println(voyages.size());
-        ArrayList<IDPair> coms = _transactionCartesian();
-        System.out.println(coms);
+        ArrayList<Integer> commodities =
+                getColumnInt(Commodity.TABLE_NAME, "ID");
+        System.out.println("Num commodities: " + commodities.size());
         Random rand = new Random();
         Transaction[] trans = new Transaction[num];
         for (int id = 0; id < num; id++) {
             int voyage = voyages.get(rand.nextInt(voyages.size()));
-            IDPair pair = coms.get(rand.nextInt(coms.size()));
-            int comIn = pair.id1;
-            int comOut = pair.id2;
-            int amountIn = rand.nextInt(256);
-            int amountOut = rand.nextInt(256);
+            int commodity = commodities.get(rand.nextInt(commodities.size()));
+            int amount = rand.nextInt(256);
+            int price = rand.nextInt(256);
             Transaction t =
-                    new Transaction(id,voyage,comIn,amountIn,comOut,amountOut);
+                    new Transaction(voyage,commodity,amount,price);
+            System.out.println(t);
             t.store(conn);
             trans[id] = t;
         }

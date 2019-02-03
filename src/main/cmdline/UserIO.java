@@ -21,7 +21,7 @@ public class UserIO {
             "= Commands:                                                      =\n"+
             "= \tMERCHANT? - Displays info about your merchant.               =\n"+
             "= \tPORT? [port] - Displays info about the given port.           =\n"+
-            "= \tTRADE [in][amount [out][amount] - Trade at the Port.         =\n"+
+            "= \tTRADE [in][amount] [out][amount] - Trade at the Port.        =\n"+
             "= \tTRAVEL [route] - Moves your Merchant along the Route.        =\n"+
             "= \tRETIRE - End your Voyage. Try to be at your Home Port.       =\n"+
             "= \tHELP - Displays this message.                                =\n"+
@@ -89,8 +89,9 @@ public class UserIO {
             "=        " +
             "ID: %d\t" +
             "VOYAGE: %d\t" +
-            "IN: %d %s(ID=%d)\t" +
-            "OUT: %d %s(ID=%d)\n";
+            "COMMODITY: %s(ID=%d)\t" +
+            "AMOUNT: %d\t" +
+            "PRICE: %d\n";
 
 
     /**
@@ -108,7 +109,7 @@ public class UserIO {
 
         for (Map.Entry<Integer, MerchantInventory> e : map.entrySet()) {
             MerchantInventory i = e.getValue();
-            Commodity c = i.retrieveCommodity(conn);
+            Commodity c = Commodity.retrieve(i.COMMODITY_ID,conn);
             builder.append(
                     String.format(
                             MERCHANT_INVENTORY_INFO_STRING,
@@ -200,18 +201,21 @@ public class UserIO {
 
         for (Map.Entry<Integer, Transaction> e : map.entrySet()) {
             Transaction t = e.getValue();
-            Commodity in = t.retrieveInCommodity(conn);
-            Commodity out = t.retrieveOutCommodity(conn);
+            Commodity com = t.retrieveCommodity(conn);
 
-            builder.append(
-                    String.format(
-                            TRANSACTION_INFO_STRING,
-                            t.ID,
-                            v.ID,
-                            t.IN_AMOUNT, in.NAME, in.ID,
-                            t.OUT_AMOUNT, out.NAME, out.ID
-                    )
-            );
+            //if (com!=null) {
+                builder.append(
+                        String.format(
+                                TRANSACTION_INFO_STRING,
+                                t.ID,
+                                v.ID,
+                                com.NAME, com.ID,
+                                t.AMOUNT,
+                                t.PRICE
+                        )
+                );
+
+           // }
         }
         return builder.toString();
     }
@@ -251,7 +255,7 @@ public class UserIO {
      * @param m Merchant to display.
      * @param conn Connection to the database.
      */
-    private static void commandMerchantDisplay(Merchant m, Connection conn) {
+    public static void commandMerchantDisplay(Merchant m, Connection conn) {
 
         Port p = m.retrieveHomePort(conn);
         float used = m.getUsedCapacity(conn);
@@ -272,7 +276,7 @@ public class UserIO {
      * @param p Port to display.
      * @param conn Connection to the database.
      */
-    private static void commandPortDisplay(Port p, Connection conn) {
+    public static void commandPortDisplay(Port p, Connection conn) {
         String out = String.format(
                 PORT_INFO_STRING,
                 p.ID, p.NAME,
@@ -280,6 +284,70 @@ public class UserIO {
                 buildRoutesString(p, conn)
         );
         System.out.println(out);
+    }
+
+    /**
+     * The Merchant trades Commodities with the Port. Does NOT generate
+     * a Transaction object. For the transaction to be successful, the
+     * Merchant and Port must have the required Commodities on hand.
+     * Additionally, the new weight of the Merchant's inventory cannot
+     * exceed his or her capacity.
+     * @param m Merchant.
+     * @param p Port.
+     * @param com Commodity bought from the Port.
+     * @param amount Amount to buy or sell (negative = sell).
+     * @param conn Connection to the database.
+     * @param update If true, update the database.
+     * @return Returns a Transaction if successful, or null.
+     */
+    public static Transaction commandTrade(
+            Merchant m, Port p, Commodity com,
+            int amount, Connection conn, boolean update) {
+
+        if (!m.canTrade(p, com, amount, conn)) {return null;}
+
+        PortInventory pInv =
+                p.retrievePortInventoryByCommodity(com.ID, conn);
+
+        MerchantInventory mInv =
+                m.retrieveMerchantInventoryByCommodity(com.ID, conn);
+
+        int totalPrice = 0;
+
+        // selling
+        if (amount < 0) {
+
+            totalPrice = pInv.SELL_PRICE * amount;
+            m.GOLD += totalPrice;
+            mInv.AMOUNT -= amount;
+            pInv.ON_HAND += amount;
+        }
+
+        // buying
+        else {
+
+            totalPrice = pInv.BUY_PRICE * amount;
+            m.GOLD -= totalPrice;
+            mInv.AMOUNT += amount;
+            pInv.ON_HAND -= amount;
+        }
+
+        // create Transaction
+        Voyage voyage =
+                m.getLatestVoyage(conn);
+        Transaction t =
+                new Transaction(voyage.ID, com.ID, amount, totalPrice);
+
+        // update the database
+        if (update) {
+            m.store(conn);
+            mInv.store(conn);
+            pInv.store(conn);
+            t.store(conn);
+        }
+
+        return t;
+
     }
 
     public static void test(Merchant m, Port p, Connection conn) {

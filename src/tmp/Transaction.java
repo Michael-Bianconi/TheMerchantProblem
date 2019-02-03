@@ -24,17 +24,14 @@ public class Transaction {
     /** ID of the associated Voyage. */
     public final int VOYAGE_ID;
 
-    /** ID of the associated commodity sold to the port. */
-    public final int OUT_ID;
+    /** ID of the associated commodity traded. */
+    public final int COMMODITY_ID;
 
-    /** Amount transferred to the Port. */
-    public final int OUT_AMOUNT;
+    /** Amount of the Commodity traded. */
+    public final int AMOUNT;
 
-    /** ID of the associated commodity given by the port. */
-    public final int IN_ID;
-
-    /** Amount transferred from the Port. */
-    public final int IN_AMOUNT;
+    /** Amount traded for (selling to the port will result in negative. */
+    public final int PRICE;
 
     /**
      * Creates the table if it doesn't already exist.
@@ -47,15 +44,12 @@ public class Transaction {
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" +
                         "ID             INTEGER PRIMARY KEY NOT NULL," +
                         "VOYAGE_ID      INTEGER             NOT NULL," +
-                        "IN_ID          INTEGER             NOT NULL," +
-                        "IN_AMOUNT      INTEGER             NOT NULL," +
-                        "OUT_ID         INTEGER             NOT NULL," +
-                        "OUT_AMOUNT     INTEGER             NOT NULL," +
+                        "COMMODITY_ID   INTEGER             NOT NULL," +
+                        "AMOUNT         INTEGER             NOT NULL," +
+                        "PRICE          INTEGER             NOT NULL," +
                         "FOREIGN KEY(VOYAGE_ID) REFERENCES " +
                         Voyage.TABLE_NAME + "(ID)," +
-                        "FOREIGN KEY(IN_ID) REFERENCES " +
-                        Commodity.TABLE_NAME + "(ID)," +
-                        "FOREIGN KEY(OUT_ID) REFERENCES " +
+                        "FOREIGN KEY(COMMODITY_ID) REFERENCES " +
                         Commodity.TABLE_NAME + "(ID));";
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -87,13 +81,6 @@ public class Transaction {
      */
     public static Transaction retrieve(int id, Connection conn) {
         // Initialize variables
-        int numResults = 0;
-        int ID=-1;
-        int voyage=-1;
-        int inID=-1;
-        int outID=-1;
-        int inAmount=-1;
-        int outAmount=-1;
         String sqlCommand =
                 "SELECT * FROM " + TABLE_NAME + " WHERE ID=" + id + ";";
 
@@ -102,30 +89,18 @@ public class Transaction {
 
             // Get each field. If there's more than one row, something's wrong.
             ResultSet set = stmt.executeQuery();
-            while (set.next()) {
-                if (numResults > 1) {
-                    return null;
-                }
+            set.next();
+            int ID = set.getInt("ID");
+            int voyage = set.getInt("VOYAGE_ID");
+            int com = set.getInt("COMMODITY_ID");
+            int amount = set.getInt("AMOUNT");
+            int price = set.getInt("PRICE");
+            return new Transaction(ID,voyage, com, amount, price);
 
-                ID = set.getInt("ID");
-                voyage = set.getInt("VOYAGE_ID");
-                inID = set.getInt("IN_ID");
-                inAmount = set.getInt("IN_AMOUNT");
-                outID = set.getInt("OUT_ID");
-                outAmount = set.getInt("OUT_AMOUNT");
-                numResults++;
-            }
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }
-
-        // There were no rows in the table with that ID
-        if (numResults == 0) {
-            return null;
-        }
-
-        return new Transaction(ID,voyage,inID,inAmount,outID,outAmount);
     }
 
     /**
@@ -150,11 +125,10 @@ public class Transaction {
 
                 int ID = set.getInt("ID");
                 int voyage = set.getInt("VOYAGE_ID");
-                int inID = set.getInt("IN_ID");
-                int inAmount = set.getInt("IN_AMOUNT");
-                int outID = set.getInt("OUT_ID");
-                int outAmount = set.getInt("OUT_AMOUNT");
-                map.put(ID, new Transaction(ID,voyage,inID,inAmount,outID,outAmount));
+                int comID = set.getInt("COMMODITY_ID");
+                int amount = set.getInt("AMOUNT");
+                int price = set.getInt("PRICE");
+                map.put(ID, new Transaction(ID,voyage,comID, amount, price));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -176,45 +150,45 @@ public class Transaction {
     }
 
     /**
-     * Returns the received Commodity associated with this Route.
+     * Returns this Transaction's Commodity.
      *
      * @param conn Connection to the database.
-     * @return Returns the Commodity referenced by this RouteCost.
+     * @return Returns the Commodity referenced by this Transaction.
      */
-    public Commodity retrieveInCommodity(Connection conn) {
+    public Commodity retrieveCommodity(Connection conn) {
 
-        return Commodity.retrieve(IN_ID, conn);
+        Commodity c = Commodity.retrieve(COMMODITY_ID, conn);
+        System.out.println(COMMODITY_ID+": "+c);
+        return c;
     }
 
     /**
-     * Returns the given Commodity associated with this Route.
-     *
-     * @param conn Connection to the database.
-     * @return Returns the Commodity referenced by this RouteCost.
+     * Constructs a new Route.
+     * @param voyage ID of the Voyage.
+     * @param comID ID of the traded Commodity.
+     * @param amount Amount of the Commodity traded.
+     * @param price Gold transferred (negative for selling to port.)
      */
-    public Commodity retrieveOutCommodity(Connection conn) {
-
-        return Commodity.retrieve(OUT_ID, conn);
+    public Transaction(
+            int voyage, int comID, int amount, int price) {
+        this(TMPDatabase.uniqueID(), voyage, comID, amount, price);
     }
 
     /**
      * Constructs a new Route.
      * @param id ID of the Route.
      * @param voyage ID of the Voyage.
-     * @param inID ID of the received Commodity.
-     * @param inAmount Amount of IN received.
-     * @param outID ID of the given Commodity.
-     * @param outAmount Amount of OUT given.
+     * @param comID ID of the traded Commodity.
+     * @param amount Amount of the Commodity traded.
+     * @param price Gold transferred (negative for selling to port.)
      */
     public Transaction(
-            int id, int voyage, int inID,
-            int inAmount, int outID, int outAmount) {
+            int id, int voyage, int comID, int amount, int price) {
         this.ID = id;
         this.VOYAGE_ID = voyage;
-        this.IN_ID = inID;
-        this.IN_AMOUNT = inAmount;
-        this.OUT_ID = outID;
-        this.OUT_AMOUNT = outAmount;
+        this.COMMODITY_ID = comID;
+        this.AMOUNT = amount;
+        this.PRICE = price;
     }
 
     /**
@@ -227,11 +201,11 @@ public class Transaction {
     public boolean store(Connection conn) {
 
         String sqlCommand =
-                "MERGE INTO " + TABLE_NAME + "(ID,VOYAGE_ID,IN_ID,IN_AMOUNT," +
-                        "OUT_ID,OUT_AMOUNT) " +
-                "VALUES("+ID+","+VOYAGE_ID+","+IN_ID+","+IN_AMOUNT+
-                        ","+OUT_ID+","+OUT_AMOUNT+");";
-
+                "MERGE INTO " + TABLE_NAME + "(ID,VOYAGE_ID,COMMODITY_ID,"+
+                        "AMOUNT,PRICE) " +
+                "VALUES("+ID+","+VOYAGE_ID+","+COMMODITY_ID+","+AMOUNT+
+                        ","+PRICE+");";
+        System.out.println(sqlCommand);
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
             stmt.executeUpdate();
 
@@ -243,7 +217,7 @@ public class Transaction {
     }
 
     public String toString() {
-        return "[TRANSACTION]\t"+ID+"\t"+VOYAGE_ID+"\t"+IN_ID+"\t"+
-                IN_AMOUNT+"\t"+OUT_ID+"\t"+OUT_AMOUNT;
+        return "[TRANSACTION]\t"+ID+"\t"+VOYAGE_ID+"\t"+COMMODITY_ID+"\t"+
+                AMOUNT+"\t"+PRICE;
     }
 }
