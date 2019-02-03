@@ -1,0 +1,2 @@
+2019-02-03 11:58:41 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: No data is available [2000-196]

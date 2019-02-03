@@ -22,7 +22,6 @@ public class Main {
             Merchant m = Merchant.retrieve(1, conn);
             Port p = Port.retrieve(2, conn);
 
-            UserIO.test(m,p,conn);
 
         } catch (Exception e) { e.printStackTrace(); }
     }

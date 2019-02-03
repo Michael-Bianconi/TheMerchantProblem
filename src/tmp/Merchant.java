@@ -153,8 +153,8 @@ public class Merchant {
             int id, Connection conn) {
 
         String sqlCommand =
-                "SELECT * FROM " + TABLE_NAME +
-                " WHERE MERCHANT_ID="+ID+",COMMODITY_ID="+id+";";
+                "SELECT * FROM " + MerchantInventory.TABLE_NAME +
+                " WHERE MERCHANT_ID="+ID+" AND COMMODITY_ID="+id+";";
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -360,10 +360,12 @@ public class Merchant {
      */
     public Voyage getLatestVoyage(Connection conn) {
         String command = "SELECT ID, MAX(TIMESTAMP) FROM " +
-                Voyage.TABLE_NAME + " WHERE MERCHANT_ID="+ID+");";
+                Voyage.TABLE_NAME + " WHERE MERCHANT_ID="+ID+
+                " GROUP BY(ID);";
 
         try (PreparedStatement stmt = conn.prepareStatement(command)) {
             ResultSet set = stmt.executeQuery();
+            set.next();
             return Voyage.retrieve(set.getInt("ID"),conn);
 
         } catch (SQLException e) {
@@ -402,7 +404,7 @@ public class Merchant {
             if (pInv.BUY_PRICE*amount > GOLD) {return false;}
 
             // the merchant must have the capacity for this commodity
-            return getUsedCapacity(conn)+(com.WEIGHT*amount) > CAPACITY;
+            return getUsedCapacity(conn)+(com.WEIGHT*amount) <= CAPACITY;
 
             // selling
         } else if (amount < 0) {
@@ -417,6 +419,42 @@ public class Merchant {
 
             // The Merchant doesn't have enough of this commodity
             return mInv.AMOUNT >= amount;
+        }
+
+        return true;
+    }
+
+    /**
+     * To travel along a Route, the Merchant must currently be at
+     * the starting port and must own the required commodities.
+     *
+     * @param r Route to travel.
+     * @param conn Connection to the database.
+     * @return Returns true if the Merchant can use the Route.
+     */
+    public boolean canTravel(Route r, Connection conn) {
+
+        Port start = r.retrieveStartPort(conn);
+
+        // The Merchant is not at the starting port.
+        if (start.ID != CURRENT_PORT) {return false;}
+
+        Map<Integer, RouteCost> costs =
+                r.retrieveRouteCosts(conn);
+
+        // Check each RouteCost
+        for (Map.Entry<Integer, RouteCost> e : costs.entrySet()) {
+
+            RouteCost cost = e.getValue();
+            MerchantInventory commodity =
+                    retrieveMerchantInventoryByCommodity(
+                            cost.COMMODITY_ID, conn);
+
+            // The merchant does not own the Commodity
+            if (commodity == null) {return false;}
+
+            // The merchant does not own enough of the Commodity
+            if (commodity.AMOUNT < cost.AMOUNT) {return false;}
         }
 
         return true;

@@ -115,7 +115,7 @@ public class Port {
         int sell = -1;
         String sqlCommand =
         "SELECT * FROM " + PortInventory.TABLE_NAME +
-        " WHERE PORT_ID="+ID+",COMMODITY_ID="+id+";";
+        " WHERE PORT_ID="+ID+" AND COMMODITY_ID="+id+";";
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
