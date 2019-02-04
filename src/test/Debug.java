@@ -1,6 +1,6 @@
 package test;
 
-import tmp.*;
+import data.TMPDatabase;
 
 import java.sql.Connection;
 

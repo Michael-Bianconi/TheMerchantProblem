@@ -1,8 +1,11 @@
-package tmp;
+package data;
+
+import tmp.*;
 
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -11,6 +14,66 @@ import java.util.Random;
  * The TMPDatabase class will build a database from scratch.
  */
 public class TMPDatabase implements AutoCloseable {
+
+    /** Username for accessing the database. (Default: username) */
+    private String username = "username";
+
+    /** Password for accessing the database. (Default: password) */
+    private String password = "password";
+
+    /** Location of the database. */
+    private String dbURL = "";
+
+    /**
+     * A list of all possible commodity names. This list will shrink
+     * as Commodities are added to the database.
+     */
+    private List<String> commodityNames;
+
+    /**
+     * A list of all possible port names. This list will shrink
+     * as Ports are added to the database.
+     */
+    private List<String> portNames;
+
+    // CONSTRUCTORS ===========================================================
+
+    public TMPDatabase(String url) throws Exception {
+
+        setURL(url);
+        Class.forName(JDBC_DRIVER);
+        this.conn = DriverManager.getConnection(dbURL, username, password);
+    }
+
+    // INIT METHODS, ACCESSORS ================================================
+
+    /**
+     * Reads in Commodity names from a .CSV file.
+     *
+     * @param path Path to the .CSV file.
+     */
+    public void readCommodityNames(String path) {
+        this.commodityNames = TMPReader.read(path);
+    }
+
+    /**
+     * Reads in Port names from a .CSV file.
+     *
+     * @param path Path to the .CSV file.
+     */
+    public void readPortNames(String path) {
+        this.portNames = TMPReader.read(path);
+    }
+
+    /** Sets the location of this database. */
+    public void setURL(String dbURL) {this.dbURL = dbURL;}
+
+    /** Set the password for this database. */
+    public void setPassword(String pass) {this.password = pass;}
+
+    /** Set the username for this database. */
+    public void setUsername(String user) {this.username = user;}
+
 
     private class IDPair {
         public int id1;
@@ -26,12 +89,6 @@ public class TMPDatabase implements AutoCloseable {
     private static final String PASS = "PASSWORD";
     private Connection conn;
     private static int UNIQUE_ID = 0;
-
-    public TMPDatabase(String dbName) throws Exception {
-
-        Class.forName(JDBC_DRIVER);
-        this.conn = DriverManager.getConnection(dbName, USER, PASS);
-    }
 
     /**
      * Generates a unique identifier. Starts at 0. Increments by one

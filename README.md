@@ -63,3 +63,15 @@ A merchant's voyage is a log of the ports he visits.
 
 Everytime the merchant buys or sells a commodity, it's recorded as a
 transaction and tied to the relevant log in his Voyage.
+
+# Data
+
+## Supplying Data
+
+In the /data directory exists some .csv files containing data for generating
+a new database. The while some values, such as "Name", are guaranteed, some
+are not. Namely, Commodity's "value" and Port's "wealth" fields wildly impact
+each other at generation time and are NOT entered into the actual database.
+
+The chief reason for this is that in The Merchant Problem, Commodities do not
+have inherent value. Rather, they are worth what Ports will pay for them.

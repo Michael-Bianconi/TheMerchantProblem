@@ -1,32 +1,43 @@
 package tmp;
 
+import data.TMPDatabase;
+
 import java.sql.*;
 import java.util.HashMap;
-import java.util.Objects;
 
 /**
+ * Commodities, such as Silk or Emerald, can be bought and sold at
+ * {@link tmp.Port Ports}. Ports will only trade Commodities that
+ * exist in their {@link tmp.PortInventory inventories}.
+ *
+ * Each {@link tmp.Merchant} may only hold so many Commodities,
+ * determined by the collective weight of his
+ * {@link tmp.MerchantInventory inventory} and his Capacity.
+ *
+ * When traveling between Ports using {@link tmp.Route Routes},
+ * Merchants must consume all {@link tmp.RouteCost Route Costs}
+ * associated with that Route.
+ *
  * @author Michael Bianconi
- * @since 01/28/2019
- * Commodities are bought and sold by the Merchant at ports. Each one has
- * a weight, and the sum total of the weight of all of a merchant's
- * commodities cannot exceed the merchant's capacity.
+ * @since 01-28-2019
  */
 public class Commodity {
 
-    /** The name of the table that the database will store commodities in. */
+    /** The name of the Commodity table in the database. */
     public static final String TABLE_NAME = "COMMODITIES";
 
-    /** The commodity's ID, the <i>only</i> thing used to identify it. */
+    /** The unique identifier of this Commodity. */
     public final int ID;
 
-    /** The name of the Commodity. Cannot be changed. */
+    /** The name of the Commodity. */
     public final String NAME;
 
-    /** The weight per unit of Commodity. Cannot be changed. */
+    /** The weight per unit of Commodity. */
     public final float WEIGHT;
 
     /**
      * Creates the commodity table if it doesn't already exist.
+     *
      * @param conn The connection to the H2 database.
      * @return Returns true if and only if successful.
      */
@@ -49,46 +60,38 @@ public class Commodity {
 
     /**
      * Retrieves the Commodity data from the connection.
+     *
      * @param id The ID of the Commodity to retrieve.
-     * @param conn The connection to the database.
+     * @param conn The Connection to the database.
      * @return Returns the Commodity with the given ID, or null if not found.
      */
     public static Commodity retrieve(int id, Connection conn) {
-        // Initialize variables
-        int numResults = 0;
-        int in_id = -1;
-        String name = "";
-        float weight = -1;
         String sqlCommand =
                 "SELECT * FROM " + TABLE_NAME + " WHERE ID=" + id + ";";
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
 
-            // Get each field. If there's more than one row, something's wrong.
+            // Compile the Commodity from entry data.
             ResultSet set = stmt.executeQuery();
-            while (set.next()) {
-                if (numResults > 1) {return null;}
+            set.next();
 
-                in_id = set.getInt("ID");
-                name = set.getString("NAME");
-                weight = set.getFloat("WEIGHT");
-                numResults++;
-            }
+            int in_id = set.getInt("ID");
+            String name = set.getString("NAME");
+            float weight = set.getFloat("WEIGHT");
+
+            return new Commodity(in_id, name, weight);
+
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }
-
-        // There were no rows in the table with that ID
-        if (numResults == 0) { return null; }
-
-        return new Commodity(in_id, name, weight);
     }
 
 
     /**
      * Retrieves ALL Commodities from the table and stores them in a HashMap.
+     *
      * @param conn Connection to the database.
      * @return Returns a Map linking each CommodityID to its Commodity.
      */
@@ -101,7 +104,7 @@ public class Commodity {
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
 
-            // Get each field. If there's more than one row, something's wrong.
+            // Compile and store each entry in the table
             ResultSet set = stmt.executeQuery();
             while (set.next()) {
 
@@ -122,6 +125,7 @@ public class Commodity {
     /**
      * Stores this Commodity into the database. Will replace the old
      * Commodity if one already exists with the same ID.
+     *
      * @param conn The connection to the database.
      * @return True if and only if successful.
      */
@@ -144,6 +148,7 @@ public class Commodity {
 
     /**
      * Construct the Commodity with a guaranteed unique ID.
+     *
      * @param name Name of the ID.
      * @param weight Weight of the commodity.
      */
@@ -152,10 +157,10 @@ public class Commodity {
     }
 
     /**
-     * Construct the Commodity.
-     * @param id The ID of this commodity. This method should
-     *           only be called when retrieving from the
-     *           database, to ensure the ID's uniqueness.
+     * Construct the Commodity. This method should only be called
+     * when retrieving from the database, to ensure the ID's uniqueness.
+     *
+     * @param id The ID of this commodity.
      * @param name The NAME of this commodity.
      * @param weight The WEIGHT of this commodity, per unit.
      */
@@ -165,15 +170,20 @@ public class Commodity {
         this.WEIGHT = weight;
     }
 
-    public int hashCode() {return Objects.hash(ID);}
 
+    /** @return Returns this Commodity's ID. */
+    public int hashCode() {return ID;}
+
+    /** @return Compares the IDs of the Commodities. */
     public boolean equals(Object o) {
         if (!(o instanceof Commodity)) {return false;}
         Commodity c = (Commodity) o;
         return c.ID == this.ID;
     }
 
+    /** @return NAME(ID) */
     public String toString() {
-        return "[Commodity]\t" + ID + "\t" + NAME + "\t" + WEIGHT;
+
+        return NAME + "(ID=" + ID;
     }
 }

@@ -1,6 +1,8 @@
 
 package tmp;
 
+import data.TMPDatabase;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -54,6 +56,25 @@ public class Port {
         }
 
         return true;
+    }
+
+    /**
+     * @return Returns true if the two Ports have a Route between them.
+     */
+    public static boolean areConnected(int start, int end, Connection conn) {
+
+        String command = "SELECT COUNT(*) FROM " + Route.TABLE_NAME +
+                " WHERE START_PORT="+start+" AND END_PORT="+end+";";
+
+        // Execute the statement
+        try (PreparedStatement stmt = conn.prepareStatement(command)) {
+            ResultSet set = stmt.executeQuery();
+            set.next();
+            return set.getInt(1) != 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
