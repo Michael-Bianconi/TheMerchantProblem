@@ -1,5 +1,6 @@
 package main.cmdline;
 
+import data.TMPDatabase;
 import tmp.Commodity;
 import tmp.Merchant;
 import tmp.Port;
@@ -40,11 +41,11 @@ public class UserIO {
      *
      * @param args Input to parse.
      * @param user The user's Merchant.
-     * @param conn The Connection to the database.
+     * @param db The Connection to the database.
      * @return Returns true if able to parse and execute.
      */
     public static boolean parse(
-            String[] args, Merchant user, Connection conn) {
+            String[] args, Merchant user, TMPDatabase db) {
 
         try {
 
@@ -62,29 +63,29 @@ public class UserIO {
                     return true;
 
                 case "MERCHANT?": // $ MERCHANT
-                    Commands.displayMerchant(user, conn);
+                    Commands.displayMerchant(user, db);
                     return true;
 
                 case "PORT?": // $ PORT? [ID]
                     if (args.length == 1) {
-                        Port current = user.retrieveCurrentPort(conn);
+                        Port current = user.retrieveCurrentPort(db);
                         if (current == null) {
                             System.out.println("Somehow, you're not at a Port!");
                             return false;
 
                         } else {
-                            Commands.displayPort(current, conn);
+                            Commands.displayPort(current, db);
                             return true;
                         }
 
                     } else {
-                        Port p = Port.retrieve(Integer.parseInt(args[1]), conn);
+                        Port p = (Port) db.retrieve("PORT",Integer.parseInt(args[1]));
                         if (p == null) {
                             System.out.println("Unknown port!");
                             return false;
 
                         } else {
-                            Commands.displayPort(p, conn);
+                            Commands.displayPort(p, db);
                             return true;
                         }
                     }
@@ -95,19 +96,20 @@ public class UserIO {
                         System.out.println("$ BUY <AMOUNT> <COMMODITY ID>");
                         return false;
                     }
-                    Port p = user.retrieveCurrentPort(conn);
+                    Port p = user.retrieveCurrentPort(db);
 
                     if (p == null) {
                         System.out.println("Somehow, you're not at a Port!");
                         return false;
                     }
                     Commodity buyCom =
-                            Commodity.retrieve(Integer.parseInt(args[2]), conn);
+                            (Commodity) db.retrieve(
+                                    "COMMODITY",Integer.parseInt(args[2]));
                     int buyAmount = Integer.parseInt(args[1]);
 
                     // Unsuccessful trade
                     if (Commands.trade(
-                            user, p, buyCom, buyAmount, conn, true) == null) {
+                            user, p, buyCom, buyAmount, db, true) == null) {
                         System.out.println("Couldn't trade!");
                         return false;
                     }
@@ -120,18 +122,19 @@ public class UserIO {
                         System.out.println("$ SELL <COMMODITY ID> <AMOUNT>");
                         return false;
                     }
-                    Port port = user.retrieveCurrentPort(conn);
+                    Port port = user.retrieveCurrentPort(db);
                     if (port == null) {
                         System.out.println("Somehow, you're not at a Port!");
                         return false;
                     }
                     Commodity sellCom =
-                            Commodity.retrieve(Integer.parseInt(args[2]), conn);
+                            (Commodity) db.retrieve(
+                                    "COMMODITY",Integer.parseInt(args[2]));
                     int sellAmount = -Integer.parseInt(args[1]);
 
                     // Unsuccessful trade
                     if (Commands.trade(
-                            user, port, sellCom, sellAmount, conn, true) == null) {
+                            user, port, sellCom, sellAmount, db, true) == null) {
                         System.out.println("Couldn't trade!");
                         return false;
                     }
@@ -144,8 +147,8 @@ public class UserIO {
                         System.out.println("$ TRAVEL <ROUTE ID>");
                         return false;
                     }
-                    Route r = Route.retrieve(Integer.parseInt(args[1]), conn);
-                    if (Commands.travel(user, r, conn, true) == null) {
+                    Route r = (Route) db.retrieve("ROUTE",Integer.parseInt(args[1]));
+                    if (Commands.travel(user, r, db, true) == null) {
                         System.out.println("Couldn't travel!");
                         return false;
                     }
@@ -168,9 +171,9 @@ public class UserIO {
     /**
      * Continually prompts for user input.
      * @param user The Merchant the user is controlling.
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      */
-    public static void inputPrompt(Merchant user, Connection conn) {
+    public static void inputPrompt(Merchant user, TMPDatabase db) {
 
         int tokenBuffer = 100;
         Scanner s = new Scanner(System.in);
@@ -180,7 +183,7 @@ public class UserIO {
 
             System.out.print("$ ");
             String[] tokens = s.nextLine().split(" ");
-            parse(tokens, user, conn);
+            parse(tokens, user, db);
         }
     }
 }

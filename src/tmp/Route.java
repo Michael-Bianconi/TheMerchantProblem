@@ -14,10 +14,7 @@ import java.util.Objects;
  * an associated RouteCost that must be paid before using the
  * Route.
  */
-public class Route {
-
-    /** Name of Route table. */
-    public static final String TABLE_NAME = "ROUTES";
+public class Route extends TMPObject {
 
     /** ID of the Route. */
     public final int ID;
@@ -29,130 +26,39 @@ public class Route {
     public final int END_PORT;
 
     /**
-     * Creates the table if it doesn't already exist.
-     *
-     * @param conn The connection to the H2 database.
-     * @return Returns true if and only if successful.
+     * Constructs a new Route.
+     * @param startID ID of the starting Port.
+     * @param endID ID of the destination Port.
      */
-    public static boolean createTable(Connection conn) {
-        String sqlCommand =
-                "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" +
-                        "ID             INTEGER PRIMARY KEY NOT NULL," +
-                        "START_PORT     INTEGER             NOT NULL," +
-                        "END_PORT       INTEGER             NOT NULL," +
-                        "FOREIGN KEY(START_PORT) REFERENCES " +
-                        Port.TABLE_NAME + "(ID)," +
-                        "FOREIGN KEY(END_PORT) REFERENCES " +
-                        Port.TABLE_NAME + "(ID));";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
+    public Route(int startID, int endID) {
+        this(TMPDatabase.uniqueID(), startID, endID);
     }
 
-    public boolean equals(Object o) {
-        if (!(o instanceof Route)) { return false; }
-        Route r = (Route) o;
-        return r.ID == ID
-            && r.START_PORT == START_PORT
-            && r.END_PORT == END_PORT;
-    }
-
-    public int hashCode() { return Objects.hash(ID,START_PORT,END_PORT); }
 
     /**
-     * Retrieves the Route data from the connection.
-     *
-     * @param id   The ID of the Route to retrieve.
-     * @param conn The connection to the database.
-     * @return Returns the Route with the given ID,
-     *         or null if not found.
+     * Constructs a new Route.
+     * @param id ID of the Route.
+     * @param startID ID of the starting Port.
+     * @param endID ID of the destination Port.
      */
-    public static Route retrieve(int id, Connection conn) {
-        // Initialize variables
-        int numResults = 0;
-        int routeID = -1;
-        int startID = -1;
-        int endID = -1;
-        String sqlCommand =
-                "SELECT * FROM " + TABLE_NAME + " WHERE ID=" + id + ";";
-
-        // Execute the statement
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-
-            // Get each field. If there's more than one row, something's wrong.
-            ResultSet set = stmt.executeQuery();
-            while (set.next()) {
-                if (numResults > 1) {
-                    return null;
-                }
-
-                routeID = set.getInt("ID");
-                startID = set.getInt("START_PORT");
-                endID = set.getInt("END_PORT");
-                numResults++;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        // There were no rows in the table with that ID
-        if (numResults == 0) {
-            return null;
-        }
-
-        return new Route(routeID, startID, endID);
-    }
-
-    /**
-     * Retrieves ALL Routes from the table and stores them in a HashMap.
-     *
-     * @param conn Connection to the database.
-     * @return Returns a Map linking each InventoryID to its Inventory.
-     */
-    public static HashMap<Integer, Route> retrieveAll(Connection conn) {
-
-        // Initialize variables
-        String sqlCommand = "SELECT * FROM " + TABLE_NAME + ";";
-        HashMap<Integer, Route> map = new HashMap<>();
-
-        // Execute the statement
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-
-            // Get each field. If there's more than one row, something's wrong.
-            ResultSet set = stmt.executeQuery();
-            while (set.next()) {
-
-                int routeID = set.getInt("ID");
-                int startID = set.getInt("START_PORT");
-                int endID = set.getInt("END_PORT");
-                map.put(routeID, new Route(routeID, startID, endID));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        return map;
+    public Route(int id, int startID, int endID) {
+        this.ID = id;
+        this.START_PORT = startID;
+        this.END_PORT = endID;
     }
 
     /**
      * Retrieves all RouteCosts associated with this Route.
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns a Map of all RouteCosts associated with this Route.
      */
-    public HashMap<Integer, RouteCost> retrieveRouteCosts(Connection conn)
+    public HashMap<Integer, RouteCost> retrieveRouteCosts(TMPDatabase db)
     {
         // Initialize variables
-        String sqlCommand = "SELECT * FROM " + RouteCost.TABLE_NAME +
+        String sqlCommand = "SELECT * FROM " + TMPFactory.tableName("ROUTE_COST") +
                 " WHERE ROUTE_ID="+ID+";";
         HashMap<Integer, RouteCost> map = new HashMap<>();
+        Connection conn = db.getConnection();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -179,71 +85,50 @@ public class Route {
     /**
      * Returns the End Port associated with this Route.
      *
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns the Commodity referenced by this PortInventory.
      */
-    public Port retrieveEndPort(Connection conn) {
+    public Port retrieveEndPort(TMPDatabase db) {
 
-        return Port.retrieve(END_PORT, conn);
+        return (Port) db.retrieve("PORT", END_PORT);
     }
 
     /**
      * Returns the Start Port associated with this Route.
      *
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns the Commodity referenced by this PortInventory.
      */
-    public Port retrieveStartPort(Connection conn) {
+    public Port retrieveStartPort(TMPDatabase db) {
 
-        return Port.retrieve(START_PORT, conn);
+        return (Port) db.retrieve("PORT", START_PORT);
     }
 
-    /**
-     * Constructs a new Route.
-     * @param startID ID of the starting Port.
-     * @param endID ID of the destination Port.
-     */
-    public Route(int startID, int endID) {
-        this(TMPDatabase.uniqueID(), startID, endID);
+    // Object =================================================================
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Route)) { return false; }
+        Route r = (Route) o;
+        return r.ID == ID;
     }
 
+    @Override
+    public int hashCode() {return ID;}
 
-    /**
-     * Constructs a new Route.
-     * @param id ID of the Route.
-     * @param startID ID of the starting Port.
-     * @param endID ID of the destination Port.
-     */
-    public Route(int id, int startID, int endID) {
-        this.ID = id;
-        this.START_PORT = startID;
-        this.END_PORT = endID;
-    }
-
-    /**
-     * Stores this Route into the database. Will replace the old
-     * one if one already exists with the same ID.
-     *
-     * @param conn The connection to the database.
-     * @return True if and only if successful.
-     */
-    public boolean store(Connection conn) {
-
-        String sqlCommand =
-                "MERGE INTO " + TABLE_NAME + "(ID,START_PORT,END_PORT) " +
-                "VALUES("+ID+","+START_PORT+","+END_PORT+");";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
+    @Override
     public String toString() {
         return "[ROUTE]\t"+ID+"\t"+START_PORT+"\t"+END_PORT;
+    }
+
+    // TMPObject ==============================================================
+
+    public int ID() {return ID;}
+
+    public String storeString() {
+
+        return "MERGE INTO " + TMPFactory.tableName("ROUTE")+
+                "(ID,START_PORT,END_PORT) " +
+                "VALUES("+ID+","+START_PORT+","+END_PORT+");";
     }
 }

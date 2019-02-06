@@ -18,10 +18,7 @@ import java.util.Objects;
  * travel from one to another using Routes. Ports have a functionally
  * unlimited amount of gold.
  */
-public class Port {
-
-    /** Name of the Port table. */
-    public static final String TABLE_NAME = "PORTS";
+public class Port extends TMPObject {
 
     /** Unique ID of the Port. */
     public final int ID;
@@ -35,39 +32,47 @@ public class Port {
     /** Y COORDINATE OF THE PORT. */
     public final int Y;
 
+    // Constructors ===========================================================
     /**
-     * Creates the port table if it doesn't already exist.
-     * @param conn The connection to the H2 database.
-     * @return Returns true if and only if successful.
+     * Constructs a new Port.
+     * @param name Name of the Port.
+     * @param x X coordinate of the Port.
+     * @param y Y coordinate of the Port.
      */
-    public static boolean createTable(Connection conn) {
-        String sqlCommand =
-                "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" +
-                "ID     INTEGER PRIMARY KEY NOT NULL," +
-                "NAME   TEXT                NOT NULL," +
-                "X      INTEGER             NOT NULL," +
-                "Y      INTEGER             NOT NULL);";
+    public Port(
+            String name, int x, int y) {
 
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        this(TMPDatabase.uniqueID(), name, x, y);
+    }
 
-        return true;
+    /**
+     * Construct a new Port.
+     * @param id ID of the Port.
+     * @param name Name of the Port.
+     * @param x X coordinate of the Port.
+     * @param y Y coordinate of the Port.
+     */
+    public Port(int id, String name, int x, int y) {
+        this.ID = id;
+        this.NAME = name;
+        this.X = x;
+        this.Y = y;
     }
 
     /**
      * @return Returns true if the two Ports have a Route between them.
      */
-    public static boolean areConnected(int start, int end, Connection conn) {
+    public static boolean areConnected(int start, int end, TMPDatabase db) {
 
-        String command = "SELECT COUNT(*) FROM " + Route.TABLE_NAME +
+        String command = "SELECT COUNT(*) FROM " +
+                TMPFactory.tableName("ROUTE") +
                 " WHERE START_PORT="+start+" AND END_PORT="+end+";";
+        Connection conn = db.getConnection();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(command)) {
+
+            // Get each field. If there's more than one row, something's wrong.
             ResultSet set = stmt.executeQuery();
             set.next();
             return set.getInt(1) != 0;
@@ -78,54 +83,13 @@ public class Port {
     }
 
     /**
-     * Retrieves the Port data from the connection.
-     * @param id The ID of the Port to retrieve.
-     * @param conn The connection to the database.
-     * @return Returns the Port with the given ID, or null if not found.
-     */
-    public static Port retrieve(int id, Connection conn) {
-        // Initialize variables
-        int numResults = 0;
-        int in_id = -1;
-        String name = "";
-        int x = -1;
-        int y = -1;
-        String sqlCommand =
-                "SELECT * FROM " + TABLE_NAME + " WHERE ID=" + id + ";";
-
-        // Execute the statement
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-
-            // Get each field. If there's more than one row, something's wrong.
-            ResultSet set = stmt.executeQuery();
-            while (set.next()) {
-                if (numResults > 1) {return null;}
-
-                in_id = set.getInt("ID");
-                name = set.getString("NAME");
-                x = set.getInt("X");
-                y = set.getInt("Y");
-                numResults++;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        // There were no rows in the table with that ID
-        if (numResults == 0) { return null; }
-
-        return new Port(in_id, name, x, y);
-    }
-
-    /**
      * Retrieves a single PortInventory, based on its commodity.
      * @param id ID of the commodity.
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns the PortInventory, or null.
      */
     public PortInventory retrievePortInventoryByCommodity(
-            int id, Connection conn) {
+            int id, TMPDatabase db) {
         // Initialize variables
         int numResults = 0;
         int in_id = -1;
@@ -135,8 +99,9 @@ public class Port {
         int buy = -1;
         int sell = -1;
         String sqlCommand =
-        "SELECT * FROM " + PortInventory.TABLE_NAME +
+        "SELECT * FROM " + TMPFactory.tableName("PORT_INVENTORY") +
         " WHERE PORT_ID="+ID+" AND COMMODITY_ID="+id+";";
+        Connection conn = db.getConnection();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -169,51 +134,20 @@ public class Port {
         return new PortInventory(in_id, pID, cID, onHand, buy, sell);
     }
 
-
-    /**
-     * Retrieves ALL Ports from the table and stores them in a HashMap.
-     * @param conn Connection to the database.
-     * @return Returns a Map linking each PortID to its Port.
-     */
-    public static HashMap<Integer, Port> retrieveAll(Connection conn) {
-
-        // Initialize variables
-        String sqlCommand = "SELECT * FROM " + TABLE_NAME + ";";
-        HashMap<Integer, Port> map = new HashMap<>();
-
-        // Execute the statement
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-
-            // Get each field. If there's more than one row, something's wrong.
-            ResultSet set = stmt.executeQuery();
-            while (set.next()) {
-
-                int id = set.getInt("ID");
-                String name = set.getString("NAME");
-                int x = set.getInt("X");
-                int y = set.getInt("Y");
-                map.put(id, new Port(id, name, x, y));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        return map;
-    }
-
     /**
      * Retrieves every inventory linked to this port.
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns a Map linking each InventoryID to its Inventory.
      */
     public HashMap<Integer, PortInventory> retrievePortInventories(
-            Connection conn){
+            TMPDatabase db){
 
         // Initialize variables
-        String sqlCommand = "SELECT * FROM " + PortInventory.TABLE_NAME +
+        String sqlCommand =
+                "SELECT * FROM " + TMPFactory.tableName("PORT_INVENTORY") +
                             " WHERE PORT_ID="+ID+";";
         HashMap<Integer, PortInventory> map = new HashMap<>();
+        Connection conn = db.getConnection();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -240,16 +174,17 @@ public class Port {
 
     /**
      * Retrieves every Route with this Port as its Start Port.
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns a Map linking each RouteID to its Route.
      */
     public HashMap<Integer, Route> retrieveRoutesOut(
-            Connection conn){
+            TMPDatabase db){
 
         // Initialize variables
-        String sqlCommand = "SELECT * FROM " + Route.TABLE_NAME +
+        String sqlCommand = "SELECT * FROM " + TMPFactory.tableName("ROUTE") +
                 " WHERE START_PORT="+ID+";";
         HashMap<Integer, Route> map = new HashMap<>();
+        Connection conn = db.getConnection();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -271,57 +206,11 @@ public class Port {
         return map;
     }
 
-
-    /**
-     * Stores this Port into the database. Will replace the old
-     * one if one already exists with the same ID.
-     * @param conn The connection to the database.
-     * @return True if and only if successful.
-     */
-    public boolean store(Connection conn) {
-
-        String sqlCommand =
-                "MERGE INTO " + TABLE_NAME + "(ID,NAME,X,Y) KEY(ID) " +
-                "VALUES("+ID+",'"+NAME+"',"+X+","+Y+");";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Constructs a new Route.
-     * @param name Name of the Port.
-     * @param x X coordinate of the Port.
-     * @param y Y coordinate of the Port.
-     */
-    public Port(
-            String name, int x, int y) {
-
-        this(TMPDatabase.uniqueID(), name, x, y);
-    }
-
-    /**
-     * Construct a new Port.
-     * @param id ID of the Port.
-     * @param name Name of the Port.
-     * @param x X coordinate of the Port.
-     * @param y Y coordinate of the Port.
-     */
-    public Port(int id, String name, int x, int y) {
-        this.ID = id;
-        this.NAME = name;
-        this.X = x;
-        this.Y = y;
-    }
-
+    // Object =================================================================
+    @Override
     public int hashCode() { return Objects.hash(ID); }
 
+    @Override
     public boolean equals(Object o)
     {
         if (!(o instanceof Port)) { return false; }
@@ -329,7 +218,16 @@ public class Port {
         return p.ID == ID;
     }
 
+    @Override
     public String toString() {
         return "[PORT]\t" + ID + "\t" + NAME + "\t" + X + "\t" + Y;
+    }
+
+    // TMPObject ==============================================================
+    public int ID() {return ID;}
+
+    public String storeString() {
+        return "MERGE INTO " + TMPFactory.tableName("PORT")
+        + "(ID,NAME,X,Y) KEY(ID) VALUES("+ID+",'"+NAME+"',"+X+","+Y+");";
     }
 }

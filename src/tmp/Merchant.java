@@ -16,10 +16,7 @@ import java.util.Objects;
  * Merchants travel from Port to Port, trading Commodities. Their goal is
  * to make as much profit as possible before returning home.
  */
-public class Merchant {
-
-    /** Name of the Merchant table. */
-    public static final String TABLE_NAME = "MERCHANTS";
+public class Merchant extends TMPObject {
 
     /** ID of the Merchant. */
     public final int ID;
@@ -38,6 +35,8 @@ public class Merchant {
 
     /** How much Gold this Merchant has. */
     public int GOLD;
+
+    // Constructors ===========================================================
 
     /**
      * Constructs a new Merchant.
@@ -75,88 +74,18 @@ public class Merchant {
     }
 
     /**
-     * Creates the table if it doesn't already exist.
-     *
-     * @param conn The connection to the H2 database.
-     * @return Returns true if and only if successful.
-     */
-    public static boolean createTable(Connection conn) {
-        String sqlCommand =
-                "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "(" +
-                        "ID             INTEGER PRIMARY KEY NOT NULL," +
-                        "NAME           TEXT                NOT NULL," +
-                        "HOME_PORT      INTEGER             NOT NULL," +
-                        "CURRENT_PORT   INTEGER             NOT NULL," +
-                        "CAPACITY       INTEGER             NOT NULL," +
-                        "GOLD           INTEGER             NOT NULL," +
-                        "FOREIGN KEY(HOME_PORT) REFERENCES " +
-                        Port.TABLE_NAME + "(ID)," +
-                        "FOREIGN KEY(CURRENT_PORT) REFERENCES " +
-                        Port.TABLE_NAME + "(ID));";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean equals(Object o) {
-        if (!(o instanceof Merchant)) { return false; }
-        Merchant m = (Merchant) o;
-        return m.ID == ID;
-    }
-
-    public int hashCode() { return Objects.hash(ID,NAME,HOME_PORT,CAPACITY); }
-
-    /**
-     * Retrieves the Merchant data from the connection.
-     *
-     * @param id   The ID of the Merchant to retrieve.
-     * @param conn The connection to the database.
-     * @return Returns the Merchant with the given ID, or null if not found.
-     */
-    public static Merchant retrieve(int id, Connection conn) {
-        // Initialize variables
-        String sqlCommand =
-                "SELECT * FROM " + TABLE_NAME + " WHERE ID=" + id + ";";
-
-        // Execute the statement
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-
-            // Get each field. If there's more than one row, something's wrong.
-            ResultSet set = stmt.executeQuery();
-            set.next();
-            int merchantID = set.getInt("ID");
-            String name = set.getString("NAME");
-            int home = set.getInt("HOME_PORT");
-            int current = set.getInt("CURRENT_PORT");
-            int capacity = set.getInt("CAPACITY");
-            int gold = set.getInt("GOLD");
-            return new Merchant(
-                    merchantID, name, home, current, capacity, gold);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
      * Retrieves a single MerchantInventory, based on its commodity.
      * @param id ID of the commodity.
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns the MerchantInventory, or null.
      */
     public MerchantInventory retrieveMerchantInventoryByCommodity(
-            int id, Connection conn) {
+            int id, TMPDatabase db) {
 
         String sqlCommand =
-                "SELECT * FROM " + MerchantInventory.TABLE_NAME +
+                "SELECT * FROM " + TMPFactory.tableName("MERCHANT_INVENTORY") +
                 " WHERE MERCHANT_ID="+ID+" AND COMMODITY_ID="+id+";";
+        Connection conn = db.getConnection();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -172,61 +101,25 @@ public class Merchant {
                     costID, merchantID, commodityID, amount);
 
         } catch (SQLException e) {
-            e.printStackTrace();
             return null;
         }
-    }
-
-
-    /**
-     * Retrieves ALL Merchants from the table and stores them in a HashMap.
-     *
-     * @param conn Connection to the database.
-     * @return Returns a Map linking each MerchantID to its Merchant.
-     */
-    public static HashMap<Integer, Merchant> retrieveAll(Connection conn) {
-
-        // Initialize variables
-        String sqlCommand = "SELECT * FROM " + TABLE_NAME + ";";
-        HashMap<Integer, Merchant> map = new HashMap<>();
-
-        // Execute the statement
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-
-            // Get each field. If there's more than one row, something's wrong.
-            ResultSet set = stmt.executeQuery();
-            while (set.next()) {
-
-                int merchantID = set.getInt("ID");
-                String name = set.getString("NAME");
-                int home = set.getInt("HOME_PORT");
-                int current = set.getInt("CURRENT_PORT");
-                int capacity = set.getInt("CAPACITY");
-                int gold = set.getInt("GOLD");
-                map.put(merchantID, new Merchant(
-                        merchantID,name,home,current,capacity,gold));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        return map;
     }
 
     /**
      * Retrieves ALL Merchants from the table and stores them in a HashMap.
      *
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns a Map linking each MerchantID to its Merchant.
      */
     public HashMap<Integer, MerchantInventory>
-        retrieveAllMerchantInventories(Connection conn) {
+        retrieveAllMerchantInventories(TMPDatabase db) {
 
         // Initialize variables
-        String sqlCommand = "SELECT * FROM " + MerchantInventory.TABLE_NAME +
+        String sqlCommand = "SELECT * FROM " +
+                TMPFactory.tableName("MERCHANT_INVENTORY") +
                 " WHERE MERCHANT_ID="+ID+";";
         HashMap<Integer, MerchantInventory> map = new HashMap<>();
+        Connection conn = db.getConnection();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -252,16 +145,17 @@ public class Merchant {
     /**
      * Retrieves Voyages from the table and stores them in a HashMap.
      *
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns a Map linking each ID to its data.
      */
-    public HashMap<Integer, Voyage> retrieveAllVoyages(Connection conn) {
+    public HashMap<Integer, Voyage> retrieveAllVoyages(TMPDatabase db) {
 
         // Initialize variables
-        String sqlCommand = "SELECT * FROM " + Voyage.TABLE_NAME +
+        String sqlCommand = "SELECT * FROM " + TMPFactory.tableName("VOYAGE") +
                 " WHERE MERCHANT_ID="+ID+
                 " ORDER BY TIMESTAMP DESC";
         HashMap<Integer, Voyage> map = new HashMap<>();
+        Connection conn = db.getConnection();
 
         // Execute the statement
         try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
@@ -286,69 +180,69 @@ public class Merchant {
     /**
      * Returns the Home Port associated with this Merchant.
      *
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns the Commodity referenced by this PortInventory.
      */
-    public Port retrieveHomePort(Connection conn) {
+    public Port retrieveHomePort(TMPDatabase db) {
 
-        return Port.retrieve(HOME_PORT, conn);
+        return (Port) db.retrieve("PORT",HOME_PORT);
     }
 
     /**
      * Returns the Current Port associated with this Merchant.
      *
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns the Commodity referenced by this PortInventory.
      */
-    public Port retrieveCurrentPort(Connection conn) {
+    public Port retrieveCurrentPort(TMPDatabase db) {
 
-        return Port.retrieve(CURRENT_PORT, conn);
+        return (Port) db.retrieve("PORT", CURRENT_PORT);
     }
 
-    /**
-     * Stores this Merchant into the database. Will replace the old
-     * one if one already exists with the same ID.
-     *
-     * @param conn The connection to the database.
-     * @return True if and only if successful.
-     */
-    public boolean store(Connection conn) {
+    // Object =================================================================
 
-        String sqlCommand =
-                "MERGE INTO " + TABLE_NAME +
-                        "(ID,NAME,HOME_PORT,CURRENT_PORT,CAPACITY,GOLD) " +
-                "VALUES("+ID+",'"+NAME+"',"+HOME_PORT+","+CURRENT_PORT+"," +
-                        CAPACITY+","+GOLD+");";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sqlCommand)) {
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
+    @Override
     public String toString() {
         return "[MERCHANT]\t"+ID+"\t"+NAME+"\t"+HOME_PORT+
                 "\t"+CURRENT_PORT+"\t"+CAPACITY;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Merchant)) { return false; }
+        Merchant m = (Merchant) o;
+        return m.ID == ID;
+    }
+
+    @Override
+    public int hashCode() { return ID; }
+
+    // TMPObject ==============================================================
+
+    public int ID() {return ID;}
+
+    public String storeString() {
+        return "MERGE INTO " + TMPFactory.tableName("MERCHANT") +
+                "(ID,NAME,HOME_PORT,CURRENT_PORT,CAPACITY,GOLD) " +
+                "VALUES(" + ID + ",'" + NAME + "'," + HOME_PORT + "," +
+                CURRENT_PORT + "," + CAPACITY + "," + GOLD + ");";
+    }
+
+
     /**
      * Returns the sum weight of all commodities this Merchant has
      * in his inventory.
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return float
      */
-    public float getUsedCapacity(Connection conn) {
+    public float getUsedCapacity(TMPDatabase db) {
         Map<Integer, MerchantInventory> map =
-                retrieveAllMerchantInventories(conn);
+                retrieveAllMerchantInventories(db);
         float total = 0;
 
         for (Map.Entry<Integer, MerchantInventory> e : map.entrySet()) {
             MerchantInventory i = e.getValue();
-            Commodity c = i.retrieveCommodity(conn);
+            Commodity c = i.retrieveCommodity(db);
             total += c.WEIGHT * i.AMOUNT;
         }
 
@@ -356,19 +250,21 @@ public class Merchant {
     }
 
     /**
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns this Merchant's most recent Voyage (the
      * voyage with the largest timestamp).
      */
-    public Voyage getLatestVoyage(Connection conn) {
+    public Voyage getLatestVoyage(TMPDatabase db) {
         String command = "SELECT ID, MAX(TIMESTAMP) FROM " +
-                Voyage.TABLE_NAME + " WHERE MERCHANT_ID="+ID+
+                TMPFactory.tableName("VOYAGE")+ " WHERE MERCHANT_ID="+ID+
                 " GROUP BY(ID);";
+
+        Connection conn = db.getConnection();
 
         try (PreparedStatement stmt = conn.prepareStatement(command)) {
             ResultSet set = stmt.executeQuery();
             set.next();
-            return Voyage.retrieve(set.getInt("ID"),conn);
+            return (Voyage) db.retrieve("VOYAGE",set.getInt("ID"));
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -384,29 +280,40 @@ public class Merchant {
      * @param port Port to trade with.
      * @param com Commodity to trade.
      * @param amount Amount to trade (- for selling, + for buying).
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns true if able to trade.
      */
     public boolean canTrade(
-            Port port, Commodity com, int amount, Connection conn) {
+            Port port, Commodity com, int amount, TMPDatabase db) {
 
         PortInventory pInv =
-                port.retrievePortInventoryByCommodity(com.ID, conn);
+                port.retrievePortInventoryByCommodity(com.ID, db);
 
         // the port does not trade that commodity
-        if (pInv == null) {return false;}
+        if (pInv == null) {
+            System.out.printf("%s doesn't trade %s\n", port.NAME, com.NAME);
+            return false;
+        }
 
         // buying
         if (amount > 0) {
 
             // the port doesn't have enough of that commodity
-            if (pInv.ON_HAND < amount) {return false;}
+            if (pInv.ON_HAND < amount) {
+                System.out.printf("%s doesn't have enough %s\n", port.NAME,com.NAME);
+                return false;
+            }
 
             // the merchant doesn't have enough Gold
-            if (pInv.BUY_PRICE*amount > GOLD) {return false;}
+            if (pInv.BUY_PRICE*amount > GOLD) {
+                System.out.printf("You don't have enough gold\n");
+                return false;
+            }
 
             // the merchant must have the capacity for this commodity
-            return getUsedCapacity(conn)+(com.WEIGHT*amount) <= CAPACITY;
+            if( getUsedCapacity(db)+(com.WEIGHT*amount) > CAPACITY) {
+                System.out.printf("You don't have enough space for that many %s\n",com.NAME);
+            }
 
             // selling
         } else if (amount < 0) {
@@ -414,13 +321,19 @@ public class Merchant {
             amount = -amount; // flip it to positive
 
             MerchantInventory mInv =
-                    retrieveMerchantInventoryByCommodity(com.ID, conn);
+                    retrieveMerchantInventoryByCommodity(com.ID, db);
 
             // Merchant doesn't have this commodity.
-            if (mInv == null) {return false;}
+            if (mInv == null) {
+                System.out.printf("You don't own %s\n",com.NAME);
+                return false;
+            }
 
             // The Merchant doesn't have enough of this commodity
-            return mInv.AMOUNT >= amount;
+            if (mInv.AMOUNT < amount) {
+                System.out.printf("You don't have enough %s\n",com.NAME);
+                return false;
+            }
         }
 
         return true;
@@ -431,18 +344,18 @@ public class Merchant {
      * the starting port and must own the required commodities.
      *
      * @param r Route to travel.
-     * @param conn Connection to the database.
+     * @param db Connection to the database.
      * @return Returns true if the Merchant can use the Route.
      */
-    public boolean canTravel(Route r, Connection conn) {
+    public boolean canTravel(Route r, TMPDatabase db) {
 
-        Port start = r.retrieveStartPort(conn);
+        Port start = r.retrieveStartPort(db);
 
         // The Merchant is not at the starting port.
         if (start.ID != CURRENT_PORT) {return false;}
 
         Map<Integer, RouteCost> costs =
-                r.retrieveRouteCosts(conn);
+                r.retrieveRouteCosts(db);
 
         // Check each RouteCost
         for (Map.Entry<Integer, RouteCost> e : costs.entrySet()) {
@@ -450,7 +363,7 @@ public class Merchant {
             RouteCost cost = e.getValue();
             MerchantInventory commodity =
                     retrieveMerchantInventoryByCommodity(
-                            cost.COMMODITY_ID, conn);
+                            cost.COMMODITY_ID, db);
 
             // The merchant does not own the Commodity
             if (commodity == null) {return false;}

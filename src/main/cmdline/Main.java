@@ -1,9 +1,8 @@
 package main.cmdline;
 
 import data.TMPDatabase;
+import data.TMPGenerator;
 import tmp.*;
-
-import java.sql.Connection;
 
 /**
  * @author Michael Bianconi
@@ -15,16 +14,30 @@ public class Main {
 
     private static final String DB_URL =
             "jdbc:h2:~/Dev/projects/TheMerchantProblem/testdb";
+    private static final String USER = "username";
+    private static final String PASS = "password";
 
     public static void main(String[] args) {
 
-        try (TMPDatabase db = new TMPDatabase(DB_URL)) {
-            Connection conn = db.getConnection();
-            Merchant m = Merchant.retrieve(1, conn);
-            Port p = Port.retrieve(2, conn);
+        if (args.length == 2 && args[1].equals("-r")) {
+            TMPDatabase.reset(DB_URL+".mv.db");
+        }
+        try (TMPDatabase db = new TMPDatabase(DB_URL,USER,PASS)) {
 
+            TMPGenerator generator = new TMPGenerator(db);
+            if (args.length == 2 && args[1].equals("-r")) {
+                System.out.println("Resetting database");
+                generator.generateWorld();
+            }
+            Merchant user = generator.generateMerchant(args[1]);
 
-        } catch (Exception e) { e.printStackTrace(); }
+            Commands.displayHelp();
+
+            UserIO.inputPrompt(user, db);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
 

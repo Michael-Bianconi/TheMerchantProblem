@@ -3,7 +3,6 @@ package main.cmdline;
 import data.TMPDatabase;
 import tmp.*;
 
-import java.sql.Connection;
 import java.util.Map;
 
 /**
@@ -22,7 +21,7 @@ public class Commands {
                     "= Commands:                                                      =\n" +
                     "= \tMERCHANT? - Displays info about your merchant.               =\n" +
                     "= \tPORT? [port] - Displays info about the given port.           =\n" +
-                    "= \tTRADE [in][amount] [out][amount] - Trade at the Port.        =\n" +
+                    "= \tTRADE [amount][id] - Trade at the Port.                      =\n" +
                     "= \tTRAVEL [route] - Moves your Merchant along the Route.        =\n" +
                     "= \tRETIRE - End your Voyage. Try to be at your Home Port.       =\n" +
                     "= \tHELP - Displays this message.                                =\n" +
@@ -102,17 +101,17 @@ public class Commands {
      * inventories.
      *
      * @param m    Gets this Merchant's inventory info.
-     * @param conn Connection to the database.
+     * @param db dbection to the database.
      * @return String
      */
-    private static String buildInventoryString(Merchant m, Connection conn) {
+    private static String buildInventoryString(Merchant m, TMPDatabase db) {
         Map<Integer, MerchantInventory> map =
-                m.retrieveAllMerchantInventories(conn);
+                m.retrieveAllMerchantInventories(db);
         StringBuilder builder = new StringBuilder();
 
         for (Map.Entry<Integer, MerchantInventory> e : map.entrySet()) {
             MerchantInventory i = e.getValue();
-            Commodity c = Commodity.retrieve(i.COMMODITY_ID, conn);
+            Commodity c = (Commodity) db.retrieve("COMMODITY",i.COMMODITY_ID);
             builder.append(
                     String.format(
                             MERCHANT_INVENTORY_INFO_STRING,
@@ -129,17 +128,17 @@ public class Commands {
      * inventories.
      *
      * @param p    Gets this Port's inventory info.
-     * @param conn Connection to the database.
+     * @param db dbection to the database.
      * @return String
      */
-    private static String buildInventoryString(Port p, Connection conn) {
+    private static String buildInventoryString(Port p, TMPDatabase db) {
         Map<Integer, PortInventory> map =
-                p.retrievePortInventories(conn);
+                p.retrievePortInventories(db);
         StringBuilder builder = new StringBuilder();
 
         for (Map.Entry<Integer, PortInventory> e : map.entrySet()) {
             PortInventory i = e.getValue();
-            Commodity c = i.retrieveCommodity(conn);
+            Commodity c = (Commodity) db.retrieve("COMMODITY", i.COMMODITY_ID);
             builder.append(
                     String.format(
                             PORT_INVENTORY_INFO_STRING,
@@ -151,15 +150,15 @@ public class Commands {
     }
 
 
-    private static String buildRouteCostsString(Route r, Connection conn) {
+    private static String buildRouteCostsString(Route r, TMPDatabase db) {
 
         Map<Integer, RouteCost> map =
-                r.retrieveRouteCosts(conn);
+                r.retrieveRouteCosts(db);
         StringBuilder builder = new StringBuilder();
 
         for (Map.Entry<Integer, RouteCost> e : map.entrySet()) {
             RouteCost cost = e.getValue();
-            Commodity com = cost.retrieveCommodity(conn);
+            Commodity com = cost.retrieveCommodity(db);
 
             builder.append(
                     String.format(
@@ -174,15 +173,15 @@ public class Commands {
         return builder.toString();
     }
 
-    private static String buildRoutesString(Port p, Connection conn) {
+    private static String buildRoutesString(Port p, TMPDatabase db) {
         Map<Integer, Route> map =
-                p.retrieveRoutesOut(conn);
+                p.retrieveRoutesOut(db);
         StringBuilder builder = new StringBuilder();
 
         for (Map.Entry<Integer, Route> e : map.entrySet()) {
             Route r = e.getValue();
-            Port start = r.retrieveStartPort(conn);
-            Port end = r.retrieveEndPort(conn);
+            Port start = r.retrieveStartPort(db);
+            Port end = r.retrieveEndPort(db);
 
             builder.append(
                     String.format(
@@ -190,7 +189,7 @@ public class Commands {
                             r.ID,
                             start.NAME, start.ID,
                             end.NAME, end.ID,
-                            buildRouteCostsString(r, conn)
+                            buildRouteCostsString(r, db)
                     )
             );
         }
@@ -198,14 +197,14 @@ public class Commands {
     }
 
 
-    private static String buildTransactionsString(Voyage v, Connection conn) {
+    private static String buildTransactionsString(Voyage v, TMPDatabase db) {
         Map<Integer, Transaction> map =
-                v.retrieveAllTransactions(conn);
+                v.retrieveAllTransactions(db);
         StringBuilder builder = new StringBuilder();
 
         for (Map.Entry<Integer, Transaction> e : map.entrySet()) {
             Transaction t = e.getValue();
-            Commodity com = t.retrieveCommodity(conn);
+            Commodity com = t.retrieveCommodity(db);
 
             //if (com!=null) {
             builder.append(
@@ -224,17 +223,17 @@ public class Commands {
         return builder.toString();
     }
 
-    private static String buildVoyageString(Merchant m, Connection conn) {
+    private static String buildVoyageString(Merchant m, TMPDatabase db) {
 
         Map<Integer, Voyage> map =
-                m.retrieveAllVoyages(conn);
+                m.retrieveAllVoyages(db);
 
         StringBuilder builder = new StringBuilder();
 
         for (Map.Entry<Integer, Voyage> e : map.entrySet()) {
 
             Voyage v = e.getValue();
-            Port p = v.retrievePort(conn);
+            Port p = v.retrievePort(db);
 
             builder.append(
                     String.format(
@@ -243,7 +242,7 @@ public class Commands {
                             m.NAME, m.ID,
                             p.NAME, p.ID,
                             v.TIMESTAMP,
-                            buildTransactionsString(v, conn)
+                            buildTransactionsString(v, db)
                     )
             );
         }
@@ -257,21 +256,21 @@ public class Commands {
      * inventory.
      *
      * @param m    Merchant to display.
-     * @param conn Connection to the database.
+     * @param db dbection to the database.
      */
-    public static void displayMerchant(Merchant m, Connection conn) {
+    public static void displayMerchant(Merchant m, TMPDatabase db) {
 
-        Port h = m.retrieveHomePort(conn);
-        Port c = m.retrieveCurrentPort(conn);
-        float used = m.getUsedCapacity(conn);
+        Port h = m.retrieveHomePort(db);
+        Port c = m.retrieveCurrentPort(db);
+        float used = m.getUsedCapacity(db);
         String out = String.format(
                 MERCHANT_INFO_STRING,
                 m.ID, m.NAME,
                 h.NAME, h.ID,
                 c.NAME, c.ID,
                 used, m.CAPACITY, m.GOLD,
-                buildInventoryString(m, conn),
-                buildVoyageString(m, conn)
+                buildInventoryString(m, db),
+                buildVoyageString(m, db)
         );
 
         System.out.println(out);
@@ -281,14 +280,14 @@ public class Commands {
      * Displays the Port's info and inventory.
      *
      * @param p    Port to display.
-     * @param conn Connection to the database.
+     * @param db dbection to the database.
      */
-    public static void displayPort(Port p, Connection conn) {
+    public static void displayPort(Port p, TMPDatabase db) {
         String out = String.format(
                 PORT_INFO_STRING,
                 p.ID, p.NAME,
-                buildInventoryString(p, conn),
-                buildRoutesString(p, conn)
+                buildInventoryString(p, db),
+                buildRoutesString(p, db)
         );
         System.out.println(out);
     }
@@ -304,23 +303,31 @@ public class Commands {
      * @param p      Port.
      * @param com    Commodity bought from the Port.
      * @param amount Amount to buy or sell (negative = sell).
-     * @param conn   Connection to the database.
+     * @param db   dbection to the database.
      * @param update If true, update the database.
      * @return Returns a Transaction if successful, or null.
      */
     public static Transaction trade(
             Merchant m, Port p, Commodity com,
-            int amount, Connection conn, boolean update) {
+            int amount, TMPDatabase db, boolean update) {
 
-        if (!m.canTrade(p, com, amount, conn)) {
+        if (!m.canTrade(p, com, amount, db)) {
             return null;
         }
 
         PortInventory pInv =
-                p.retrievePortInventoryByCommodity(com.ID, conn);
+                p.retrievePortInventoryByCommodity(com.ID, db);
+
+        if (pInv == null) {
+            System.out.printf("%s doesn't have %s",p.NAME,com.NAME);
+        }
 
         MerchantInventory mInv =
-                m.retrieveMerchantInventoryByCommodity(com.ID, conn);
+                m.retrieveMerchantInventoryByCommodity(com.ID, db);
+
+        if (mInv == null) {
+            mInv = new MerchantInventory(m.ID,com.ID,0);
+        }
 
         int totalPrice = 0;
 
@@ -344,7 +351,7 @@ public class Commands {
 
         // create Transaction
         Voyage voyage =
-                m.getLatestVoyage(conn);
+                m.getLatestVoyage(db);
 
         if (voyage == null) {
             voyage = new Voyage(m.ID, p.ID, TMPDatabase.uniqueID());
@@ -355,11 +362,11 @@ public class Commands {
 
         // update the database
         if (update) {
-            m.store(conn);
-            mInv.store(conn);
-            pInv.store(conn);
-            voyage.store(conn);
-            t.store(conn);
+            db.store(m);
+            db.store(mInv);
+            db.store(pInv);
+            db.store(voyage);
+            db.store(t);
         }
 
         return t;
@@ -374,18 +381,18 @@ public class Commands {
      *
      * @param m      Merchant traveling.
      * @param r      Route the Merchant is using.
-     * @param conn   Connection to the database.
+     * @param db   dbection to the database.
      * @param update If true, will store the new information in
      *               the database.
      * @return Returns a generated Voyage object, or null.
      */
     public static Voyage travel(
-            Merchant m, Route r, Connection conn, boolean update) {
+            Merchant m, Route r, TMPDatabase db, boolean update) {
 
-        if (!m.canTravel(r,conn)) {return null;}
+        if (!m.canTravel(r,db)) {return null;}
 
         Map<Integer, RouteCost> costs =
-                r.retrieveRouteCosts(conn);
+                r.retrieveRouteCosts(db);
 
         // Check each RouteCost
         for (Map.Entry<Integer, RouteCost> e : costs.entrySet()) {
@@ -393,21 +400,21 @@ public class Commands {
             RouteCost cost = e.getValue();
             MerchantInventory commodity =
                     m.retrieveMerchantInventoryByCommodity(
-                            cost.COMMODITY_ID, conn);
+                            cost.COMMODITY_ID, db);
 
 
             // Pay the cost
             commodity.AMOUNT -= cost.AMOUNT;
-            if (update) {commodity.store(conn);}
+            if (update) {db.store(commodity);}
         }
 
         // Go to end port
         m.CURRENT_PORT = r.END_PORT;
-        if (update) {m.store(conn);}
+        if (update) {db.store(m);}
 
         // Generate Voyage
         Voyage voyage = new Voyage(m.ID,m.CURRENT_PORT,TMPDatabase.uniqueID());
-        if (update) {voyage.store(conn);}
+        if (update) {db.store(voyage);}
 
         return voyage;
     }

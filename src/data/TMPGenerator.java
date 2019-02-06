@@ -37,6 +37,9 @@ public class TMPGenerator {
     /** Higher number = more Commodities available at Ports. (1..10) */
     private int industry = 5;
 
+    /** Higher number = more capacity and more commodities. (1..10) */
+    private int startingProfit = 5;
+
     /** If True, prints info as this is generating the database. */
     private boolean verbose = false;
 
@@ -89,6 +92,15 @@ public class TMPGenerator {
     }
 
     /**
+     * Sets a Merchant's starting profit, determining capacity and number
+     * of starting Commodities. (1..10)
+     */
+    public void setStartingProfit(int amount) {
+        assert(amount>=1 && amount<=10);
+        startingProfit=amount;
+    }
+
+    /**
      * Sets whether or not to print out Generator details.
      */
     public void setVerbose(boolean v) {verbose=v;}
@@ -101,7 +113,7 @@ public class TMPGenerator {
      */
     public void generateCommodities() {
 
-        Commodity.createTable(database.getConnection());
+        database.createTable("COMMODITY");
 
         try {
             String path = commodityNameFile;
@@ -119,7 +131,7 @@ public class TMPGenerator {
                 int value = Integer.parseInt(line[2]);
                 Commodity in = new Commodity(name,weight);
                 commodityValues.put(in.ID, value);
-                in.store(database.getConnection());
+                database.store(in);
 
                 if (verbose) {
                     System.out.printf(
@@ -139,7 +151,7 @@ public class TMPGenerator {
      */
     public void generatePorts() {
 
-        Port.createTable(database.getConnection());
+        database.createTable("PORT");
 
         try {
             String path = portNameFile;
@@ -158,7 +170,7 @@ public class TMPGenerator {
                 int wealth = Integer.parseInt(line[3]);
                 Port in = new Port(name,x,y);
                 portWealth.put(in.ID, wealth);
-                in.store(database.getConnection());
+                database.store(in);
 
                 if (verbose) {
                     System.out.printf(
@@ -181,7 +193,7 @@ public class TMPGenerator {
      */
     public void generatePortInventories() {
 
-        PortInventory.createTable(database.getConnection());
+        database.createTable("PORT_INVENTORY");
 
         Random rand = new Random();
         int maxInventories = commodityValues.size();
@@ -217,14 +229,14 @@ public class TMPGenerator {
                 // Create the inventory
                 PortInventory inv =
                         new PortInventory(portID, comID, onHand, buy, sell);
-                inv.store(database.getConnection());
+                database.store(inv);
 
                 if (verbose) {
                     System.out.printf(
                             "Stored PortInventory at %s with " +
                                     "Commodity %s, %d on hand, going for %d/%d\n",
-                            Port.retrieve(portID, database.getConnection()).NAME,
-                            Commodity.retrieve(comID, database.getConnection()).NAME,
+                            ((Port) database.retrieve("PORT",portID) ).NAME,
+                            ((Commodity) database.retrieve("COMMODITY",comID)).NAME,
                             onHand, buy, sell);
                 }
             }
@@ -259,8 +271,8 @@ public class TMPGenerator {
      */
     public void generateRoutes() {
 
-        Route.createTable(database.getConnection());
-        Map<Integer,Port> map = Port.retrieveAll(database.getConnection());
+        database.createTable("ROUTE");
+        Map<Integer,TMPObject> map = database.retrieveAll("PORT");
         Random rand = new Random();
 
         // Maximum number of routes possible
@@ -287,13 +299,13 @@ public class TMPGenerator {
             int end = unvisited.remove(index);
             Route r1 = new Route(start,end);
             Route r2 = new Route(end, start);
-            r1.store(database.getConnection());
-            r2.store(database.getConnection());
+            database.store(r1);
+            database.store(r2);
             routeCount+=2;
             System.out.printf(
                 "Stored Route between %s and %s\n",
-                Port.retrieve(start,database.getConnection()).NAME,
-                Port.retrieve(end,database.getConnection()).NAME
+                    ((Port) database.retrieve("PORT",start)).NAME,
+                    ((Port) database.retrieve("PORT",end)).NAME
             );
 
             if (visited.size()>1) {
@@ -302,12 +314,13 @@ public class TMPGenerator {
                 Route r3 = new Route(end, randP);
                 Route r4 = new Route(randP, end);
                 routeCount+=2;
-                r3.store(database.getConnection());
-                r4.store(database.getConnection());
+                database.store(r3);
+                database.store(r4);
+                routeCount+=2;
                 System.out.printf(
                         "Stored Route between %s and %s\n",
-                        Port.retrieve(end,database.getConnection()).NAME,
-                        Port.retrieve(randP,database.getConnection()).NAME
+                        ((Port) database.retrieve("PORT",end)).NAME,
+                        ((Port) database.retrieve("PORT",randP)).NAME
                 );
             }
 
@@ -319,21 +332,19 @@ public class TMPGenerator {
         while (routeCount < numRoutes) {
             int port1 = visited.get(rand.nextInt(visited.size()));
             int port2 = visited.get(rand.nextInt(visited.size()));
-            if (!Port.areConnected(port1,port2,database.getConnection())
-            &&  !Port.areConnected(port2,port1,database.getConnection())) {
+            if (!Port.areConnected(port1,port2,database)
+            &&  !Port.areConnected(port2,port1,database)) {
                 Route r1 = new Route(port1, port2);
                 Route r2 = new Route(port2, port1);
                 routeCount += 2;
-                r1.store(database.getConnection());
-                r2.store(database.getConnection());
-
-                if (verbose) {
-                    System.out.printf(
-                            "Stored Route between %s and %s\n",
-                            Port.retrieve(port1, database.getConnection()).NAME,
-                            Port.retrieve(port2, database.getConnection()).NAME
-                    );
-                }
+                database.store(r1);
+                database.store(r2);
+                routeCount+=2;
+                System.out.printf(
+                        "Stored Route between %s and %s\n",
+                        ((Port) database.retrieve("PORT",port1)).NAME,
+                        ((Port) database.retrieve("PORT",port2)).NAME
+                );
             }
         }
     }
@@ -358,46 +369,100 @@ public class TMPGenerator {
      */
     public void generateRouteCosts() {
 
-        RouteCost.createTable(database.getConnection());
+        database.createTable("ROUTE_COST");
 
         int minCosts = travelCosts/2 - 1;
         int maxCosts = travelCosts/2 + 1;
         if (minCosts <= 0) {minCosts = 1;}
         if (maxCosts >  6) {maxCosts = 6;}
 
-        Map<Integer,Route> routes = Route.retrieveAll(database.getConnection());
+        Map<Integer,TMPObject> routes = database.retrieveAll("ROUTE");
         Random rand = new Random();
 
-        for (Map.Entry<Integer, Route> e : routes.entrySet()) {
+        for (Map.Entry<Integer, TMPObject> e : routes.entrySet()) {
 
             // Get a random number of costs
             int numCosts = rand.nextInt(maxCosts-minCosts) + minCosts;
 
             // Get a list of the starting port's inventories
+            Route r = (Route) e.getValue();
             Port start =
-                    e.getValue().retrieveStartPort(database.getConnection());
+                    r.retrieveStartPort(database);
             ArrayList<Integer> invs = new ArrayList<Integer>(
-                    start.retrievePortInventories(database.getConnection()).keySet());
+                    start.retrievePortInventories(database).keySet());
 
             for (int cost = 0; cost <= numCosts; cost++) {
                 int index = rand.nextInt(invs.size());
                 PortInventory inv =
-                        PortInventory.retrieve(invs.remove(index),database.getConnection());
+                        (PortInventory) database.retrieve("PORT_INVENTORY",invs.remove(index));
 
                 int commodity = inv.COMMODITY_ID;
-                int destWealth = portWealth.get(e.getValue().END_PORT);
+                int destWealth = portWealth.get(((Route)e.getValue()).END_PORT);
                 int amount = destWealth - (commodityValues.get(commodity)/2);
                 if (amount <= 0) {amount = destWealth;}
                 RouteCost rc = new RouteCost(e.getKey(),commodity, amount);
-                rc.store(database.getConnection());
+                database.store(rc);
 
                 if (verbose) {
 
                     System.out.printf("Stored RouteCost for %s to %s, %d %s\n",
-                            start.NAME, Port.retrieve(e.getValue().END_PORT,database.getConnection()).NAME,
-                            amount, Commodity.retrieve(commodity, database.getConnection()));
+                            start.NAME, ((Port)database.retrieve("PORT",(((Route)e.getValue()).END_PORT))).NAME,
+                            amount, database.retrieve("COMMODITY",commodity));
                 }
             }
         }
+    }
+
+    /**
+     * Generates a new Merchant.
+     * Generates a single Voyage for the Merchant's home
+     * port.
+     */
+    public Merchant generateMerchant(String name) {
+
+        database.createTable("MERCHANT");
+        database.createTable("MERCHANT_INVENTORY");
+        database.createTable("VOYAGE");
+        database.createTable("TRANSACTION");
+        ArrayList<Integer> ports =
+                new ArrayList<>(
+                        (database.retrieveAll("PORT").keySet()));
+        Random rand = new Random();
+        Port port = (Port) database.retrieve("PORT",
+                ports.get(rand.nextInt(ports.size())));
+
+        int capacity = startingProfit * 100;
+        int gold = startingProfit * 150;
+        Merchant merchant =
+                new Merchant(name,port.ID,port.ID,capacity,gold);
+        Voyage voyage =
+                new Voyage(merchant.ID, port.ID, TMPDatabase.uniqueID());
+        database.store(merchant);
+        database.store(voyage);
+
+        if (verbose) {
+            System.out.printf("Stored Merchant \"%s\" at %s with %d holding space and %d gold",
+                    name, port.NAME, capacity, gold);
+        }
+
+        return merchant;
+    }
+
+
+    /**
+     * Resets and generates an entire database, based on the given
+     * components.
+     * @see #setGlobality(int)
+     * @see #setIndustry(int)
+     * @see #setTravelCosts(int)
+     * @see #setCommodityNameFile(String)
+     * @see #setPortNameFile(String)
+     */
+    public void generateWorld() {
+        generateCommodities();
+        generatePorts();
+        generatePortInventories();
+        generateRoutes();
+        generateRouteCosts();
     }
 }
