@@ -23,8 +23,8 @@ public class UserIO {
 
     static {
         commands.add("HELP");
-        commands.add("MERCHANT?");
-        commands.add("PORT?");
+        commands.add("WHOAMI");
+        commands.add("WHEREAMI");
         commands.add("BUY");
         commands.add("SELL");
         commands.add("TRAVEL");
@@ -62,11 +62,11 @@ public class UserIO {
                     Commands.displayHelp();
                     return true;
 
-                case "MERCHANT?": // $ MERCHANT
+                case "WHOAMI": // $ MERCHANT
                     Commands.displayMerchant(user, db);
                     return true;
 
-                case "PORT?": // $ PORT? [ID]
+                case "WHEREAMI": // $ PORT? [ID]
                     if (args.length == 1) {
                         Port current = user.retrieveCurrentPort(db);
                         if (current == null) {

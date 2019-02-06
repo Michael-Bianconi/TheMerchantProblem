@@ -19,9 +19,10 @@ public class Commands {
                     "= Travel from Port to Port, buying and selling Commodities.      =\n" +
                     "= Make as much profit as possible and return home.               =\n" +
                     "= Commands:                                                      =\n" +
-                    "= \tMERCHANT? - Displays info about your merchant.               =\n" +
-                    "= \tPORT? [port] - Displays info about the given port.           =\n" +
-                    "= \tTRADE [amount][id] - Trade at the Port.                      =\n" +
+                    "= \tWHOAMI - Displays info about your merchant.                  =\n" +
+                    "= \tWHEREAMI - Displays info about the given port.               =\n" +
+                    "= \tBUY [amount][id] - Trade at the Port.                        =\n" +
+                    "= \tSELL [amount][id] - Sell at the Port.                        =\n" +
                     "= \tTRAVEL [route] - Moves your Merchant along the Route.        =\n" +
                     "= \tRETIRE - End your Voyage. Try to be at your Home Port.       =\n" +
                     "= \tHELP - Displays this message.                                =\n" +
@@ -29,7 +30,6 @@ public class Commands {
 
     private static final String MERCHANT_INFO_STRING =
             "==================================================================\n" +
-                    "= MERCHANT?\n" +
                     "= ID:         %d\n" +
                     "= NAME:       %s\n" +
                     "= HOME PORT:  %s (ID=%d)\n" +
@@ -50,7 +50,6 @@ public class Commands {
 
     private static final String PORT_INFO_STRING =
             "==================================================================\n" +
-                    "= PORT?\n" +
                     "= ID:    %d\n" +
                     "= NAME:  %s\n" +
                     "= INVENTORY:\n%s" + // use buildInventoryString(Port)

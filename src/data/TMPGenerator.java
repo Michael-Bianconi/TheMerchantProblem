@@ -447,7 +447,8 @@ public class TMPGenerator {
         database.store(voyage);
 
         if (verbose) {
-            System.out.printf("Stored Merchant \"%s\" at %s with %d holding space and %d gold",
+            System.out.printf("Stored Merchant \"%s\" at %s " +
+                            "with %d holding space and %d gold\n",
                     name, port.NAME, capacity, gold);
         }
 
