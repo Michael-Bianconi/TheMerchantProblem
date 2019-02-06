@@ -71,7 +71,7 @@ public class Commodity extends TMPObject {
     @Override
     public String toString() {
 
-        return NAME + "(ID=" + ID;
+        return NAME + "(ID=" + ID + ")";
     }
 
     // TMPObject ==============================================================

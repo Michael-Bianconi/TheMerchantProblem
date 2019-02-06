@@ -311,7 +311,7 @@ public class Commands {
             Merchant m, Port p, Commodity com,
             int amount, TMPDatabase db, boolean update) {
 
-        if (!m.canTrade(p, com, amount, db)) {
+        if (!canTrade(m,p, com, amount, db)) {
             return null;
         }
 
@@ -389,7 +389,7 @@ public class Commands {
     public static Voyage travel(
             Merchant m, Route r, TMPDatabase db, boolean update) {
 
-        if (!m.canTravel(r,db)) {return null;}
+        if (!canTravel(m,r,db)) {return null;}
 
         Map<Integer, RouteCost> costs =
                 r.retrieveRouteCosts(db);
@@ -417,6 +417,141 @@ public class Commands {
         if (update) {db.store(voyage);}
 
         return voyage;
+    }
+
+    /**
+     * Determine whether the Given Merchant is able to travel along the
+     * given Route. The Merchant must be at the starting Port
+     * and must have the Commodities required for the RouteCosts.
+     * @param merchant Merchant traveling.
+     * @param route Port being traveled to.
+     * @param db Connection to the database.
+     * @return Returns true if the Merchant can travel.
+     */
+    public static boolean canTravel(
+            Merchant merchant, Route route, TMPDatabase db) {
+
+        if (merchant == null) {
+            System.out.println("That merchant doesn't exist!");
+            return false;
+        }
+
+        if (route == null) {
+            System.out.println("That route doesn't exist!");
+            return false;
+        }
+
+        Port start = route.retrieveStartPort(db);
+
+        // The Merchant is not at the starting port.
+        if (start.ID != merchant.CURRENT_PORT) {
+            System.out.println("That route isn't available here!");
+            return false;
+        }
+
+        Map<Integer, RouteCost> costs =
+                route.retrieveRouteCosts(db);
+
+        // Check each RouteCost
+        for (Map.Entry<Integer, RouteCost> e : costs.entrySet()) {
+
+            RouteCost cost = e.getValue();
+            MerchantInventory mInv =
+                    merchant.retrieveMerchantInventoryByCommodity(
+                            cost.COMMODITY_ID, db);
+
+            // The merchant does not own enough of the Commodity
+            if (mInv == null || mInv.AMOUNT < cost.AMOUNT) {
+                Commodity com = mInv.retrieveCommodity(db);
+                if (com == null) {
+                    System.out.println("RouteCost Commodity not found!");
+                    return false;
+                }
+                System.out.printf("You don't have enough %s!\n",com.NAME);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Runs through the necessary conditions for trading a commodity
+     * with a port. They must have enough available, they must have
+     * enough Gold, and the Merchant must, if buying, have
+     * enough capacity to carry the new Commodities.
+     * @param merchant Merchant trading.
+     * @param port Port to trade with.
+     * @param com Commodity to trade.
+     * @param amount Amount to trade (- for selling, + for buying).
+     * @param db Connection to the database.
+     * @return Returns true if able to trade.
+     */
+    public static boolean canTrade(
+            Merchant merchant, Port port, Commodity com,
+            int amount, TMPDatabase db) {
+
+        if (port == null) {
+            System.out.println("Null port!");
+            return false;
+        }
+
+        if (com == null) {
+            System.out.println("That commodity doesn't exist!");
+            return false;
+        }
+
+        PortInventory pInv =
+                port.retrievePortInventoryByCommodity(com.ID, db);
+
+        // the port does not trade that commodity
+        if (pInv == null) {
+            System.out.printf("%s doesn't trade %s\n", port.NAME, com.NAME);
+            return false;
+        }
+
+        // buying
+        if (amount > 0) {
+
+            // the port doesn't have enough of that commodity
+            if (pInv.ON_HAND < amount) {
+                System.out.printf("%s doesn't have enough %s\n", port.NAME,com.NAME);
+                return false;
+            }
+
+            // the merchant doesn't have enough Gold
+            if (pInv.BUY_PRICE*amount > merchant.GOLD) {
+                System.out.printf("You don't have enough gold\n");
+                return false;
+            }
+
+            // the merchant must have the capacity for this commodity
+            if( merchant.getUsedCapacity(db)+(com.WEIGHT*amount) > merchant.CAPACITY) {
+                System.out.printf("You don't have enough space for that many %s\n",com.NAME);
+            }
+
+            // selling
+        } else if (amount < 0) {
+
+            amount = -amount; // flip it to positive
+
+            MerchantInventory mInv =
+                    merchant.retrieveMerchantInventoryByCommodity(com.ID, db);
+
+            // Merchant doesn't have this commodity.
+            if (mInv == null) {
+                System.out.printf("You don't own %s\n",com.NAME);
+                return false;
+            }
+
+            // The Merchant doesn't have enough of this commodity
+            if (mInv.AMOUNT < amount) {
+                System.out.printf("You don't have enough %s\n",com.NAME);
+                return false;
+            }
+        }
+
+        return true;
     }
 
 
