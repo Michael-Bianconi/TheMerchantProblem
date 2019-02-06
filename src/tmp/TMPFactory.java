@@ -171,120 +171,124 @@ public class TMPFactory {
     /**
      * Constructs a new TMPObject.
      */
-    public static TMPObject create(String type, ResultSet data)
-            throws SQLException {
+    public static TMPObject create(String type, ResultSet data) {
 
-        switch (type) {
+        try {
+            switch (type) {
 
-            case "COMMODITY":
+                case "COMMODITY":
 
-                int comID = data.getInt("ID");
-                String comName = data.getString("NAME");
-                float comWeight = data.getFloat("WEIGHT");
-                return new Commodity(comID,comName,comWeight);
+                    int comID = data.getInt("ID");
+                    String comName = data.getString("NAME");
+                    float comWeight = data.getFloat("WEIGHT");
+                    return new Commodity(comID,comName,comWeight);
 
-            case "PORT":
+                case "PORT":
 
-                int portID = data.getInt("ID");
-                String portName = data.getString("NAME");
-                int portX = data.getInt("X");
-                int portY = data.getInt("Y");
-                return new Port(portID, portName, portX, portY);
+                    int portID = data.getInt("ID");
+                    String portName = data.getString("NAME");
+                    int portX = data.getInt("X");
+                    int portY = data.getInt("Y");
+                    return new Port(portID, portName, portX, portY);
 
-            case "PORT_INVENTORY":
+                case "PORT_INVENTORY":
 
-                int pInvID = data.getInt("ID");
-                int pInvPortID = data.getInt("PORT_ID");
-                int pInvComID = data.getInt("COMMODITY_ID");
-                int pInvOnHand = data.getInt("ON_HAND");
-                int pInvBuy = data.getInt("BUY_PRICE");
-                int pInvSell = data.getInt("SELL_PRICE");
-                return new PortInventory(
-                    pInvID, pInvPortID, pInvComID,
-                    pInvOnHand, pInvBuy, pInvSell);
+                    int pInvID = data.getInt("ID");
+                    int pInvPortID = data.getInt("PORT_ID");
+                    int pInvComID = data.getInt("COMMODITY_ID");
+                    int pInvOnHand = data.getInt("ON_HAND");
+                    int pInvBuy = data.getInt("BUY_PRICE");
+                    int pInvSell = data.getInt("SELL_PRICE");
+                    return new PortInventory(
+                        pInvID, pInvPortID, pInvComID,
+                        pInvOnHand, pInvBuy, pInvSell);
 
-            case "ROUTE":
+                case "ROUTE":
 
-                int routeID = data.getInt("ID");
-                int routeStartID = data.getInt("START_PORT");
-                int routeEndID = data.getInt("END_PORT");
-                return new Route(routeID, routeStartID, routeEndID);
+                    int routeID = data.getInt("ID");
+                    int routeStartID = data.getInt("START_PORT");
+                    int routeEndID = data.getInt("END_PORT");
+                    return new Route(routeID, routeStartID, routeEndID);
 
-            case "ROUTE_COST":
+                case "ROUTE_COST":
 
-                int routeCostID = data.getInt("ID");
-                int routeCostRouteID = data.getInt("ROUTE_ID");
-                int routeCostComID = data.getInt("COMMODITY_ID");
-                int routeCostAmount = data.getInt("AMOUNT");
-                return new RouteCost(
-                        routeCostID,
-                        routeCostRouteID,
-                        routeCostComID,
-                        routeCostAmount
-                );
+                    int routeCostID = data.getInt("ID");
+                    int routeCostRouteID = data.getInt("ROUTE_ID");
+                    int routeCostComID = data.getInt("COMMODITY_ID");
+                    int routeCostAmount = data.getInt("AMOUNT");
+                    return new RouteCost(
+                            routeCostID,
+                            routeCostRouteID,
+                            routeCostComID,
+                            routeCostAmount
+                    );
 
-            case "MERCHANT":
+                case "MERCHANT":
 
-                int merchantID = data.getInt("ID");
-                String merchantName = data.getString("NAME");
-                int merchantHome = data.getInt("HOME_PORT");
-                int merchantCurrent = data.getInt("CURRENT_PORT");
-                int merchantCapacity = data.getInt("CAPACITY");
-                int merchantGold = data.getInt("GOLD");
-                return new Merchant(
-                        merchantID,
-                        merchantName,
-                        merchantHome,
-                        merchantCurrent,
-                        merchantCapacity,
-                        merchantGold
-                );
+                    int merchantID = data.getInt("ID");
+                    String merchantName = data.getString("NAME");
+                    int merchantHome = data.getInt("HOME_PORT");
+                    int merchantCurrent = data.getInt("CURRENT_PORT");
+                    int merchantCapacity = data.getInt("CAPACITY");
+                    int merchantGold = data.getInt("GOLD");
+                    return new Merchant(
+                            merchantID,
+                            merchantName,
+                            merchantHome,
+                            merchantCurrent,
+                            merchantCapacity,
+                            merchantGold
+                    );
 
-            case "MERCHANT_INVENTORY":
+                case "MERCHANT_INVENTORY":
 
-                int mInvID = data.getInt("ID");
-                int mInvMerchantID = data.getInt("MERCHANT_ID");
-                int mInvCommodityID = data.getInt("COMMODITY_ID");
-                int mInvAmount = data.getInt("AMOUNT");
-                return new MerchantInventory(
-                        mInvID,
-                        mInvMerchantID,
-                        mInvCommodityID,
-                        mInvAmount
-                );
+                    int mInvID = data.getInt("ID");
+                    int mInvMerchantID = data.getInt("MERCHANT_ID");
+                    int mInvCommodityID = data.getInt("COMMODITY_ID");
+                    int mInvAmount = data.getInt("AMOUNT");
+                    return new MerchantInventory(
+                            mInvID,
+                            mInvMerchantID,
+                            mInvCommodityID,
+                            mInvAmount
+                    );
 
-            case "VOYAGE":
+                case "VOYAGE":
 
-                int voyageID = data.getInt("ID");
-                int voyageMerchantID = data.getInt("MERCHANT_ID");
-                int voyagePortID = data.getInt("PORT_ID");
-                int voyageTime = data.getInt("TIMESTAMP");
-                return new Voyage(
-                        voyageID,
-                        voyageMerchantID,
-                        voyagePortID,
-                        voyageTime
-                );
+                    int voyageID = data.getInt("ID");
+                    int voyageMerchantID = data.getInt("MERCHANT_ID");
+                    int voyagePortID = data.getInt("PORT_ID");
+                    int voyageTime = data.getInt("TIMESTAMP");
+                    return new Voyage(
+                            voyageID,
+                            voyageMerchantID,
+                            voyagePortID,
+                            voyageTime
+                    );
 
-            case "TRANSACTION":
+                case "TRANSACTION":
 
-                int transID = data.getInt("ID");
-                int transVoyage = data.getInt("VOYAGE_ID");
-                int transComID = data.getInt("COMMODITY_ID");
-                int transAmount = data.getInt("AMOUNT");
-                int transPrice = data.getInt("PRICE");
-                return new Transaction(
-                        transID,
-                        transVoyage,
-                        transComID,
-                        transAmount,
-                        transPrice
-                );
+                    int transID = data.getInt("ID");
+                    int transVoyage = data.getInt("VOYAGE_ID");
+                    int transComID = data.getInt("COMMODITY_ID");
+                    int transAmount = data.getInt("AMOUNT");
+                    int transPrice = data.getInt("PRICE");
+                    return new Transaction(
+                            transID,
+                            transVoyage,
+                            transComID,
+                            transAmount,
+                            transPrice
+                    );
 
-            default:
+                default:
 
-                throw new IllegalArgumentException(
-                        "CAN'T CREATE THIS " + type + "!");
+                    throw new IllegalArgumentException(
+                            "CAN'T CREATE THIS " + type + "!");
+            }
+
+        } catch (SQLException e) {
+            return null;
         }
     }
 }

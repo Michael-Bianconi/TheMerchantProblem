@@ -27,6 +27,7 @@ public class Main {
             TMPGenerator generator = new TMPGenerator(db);
             if (args.length == 2 && args[1].equals("-r")) {
                 System.out.println("Resetting database");
+                generator.setVerbose(true);
                 generator.generateWorld();
             }
             Merchant user = generator.generateMerchant(args[1]);

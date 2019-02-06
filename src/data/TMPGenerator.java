@@ -113,8 +113,6 @@ public class TMPGenerator {
      */
     public void generateCommodities() {
 
-        database.createTable("COMMODITY");
-
         try {
             String path = commodityNameFile;
             File f = new File(path);
@@ -150,8 +148,6 @@ public class TMPGenerator {
      * @see #setCommodityNameFile(String)
      */
     public void generatePorts() {
-
-        database.createTable("PORT");
 
         try {
             String path = portNameFile;
@@ -289,43 +285,43 @@ public class TMPGenerator {
         ArrayList<Integer> unvisited = new ArrayList<>(map.keySet());
         ArrayList<Integer> visited = new ArrayList<>();
         visited.add(unvisited.remove(0));
-        System.out.println(unvisited);
-        System.out.println(visited);
 
         while (unvisited.size() > 0) {
 
             int index = rand.nextInt(unvisited.size());
             int start = visited.get(visited.size()-1);
             int end = unvisited.remove(index);
+            if (start == end) {continue;}
             Route r1 = new Route(start,end);
             Route r2 = new Route(end, start);
             database.store(r1);
             database.store(r2);
             routeCount+=2;
-            System.out.printf(
-                "Stored Route between %s and %s\n",
-                    ((Port) database.retrieve("PORT",start)).NAME,
-                    ((Port) database.retrieve("PORT",end)).NAME
-            );
+            if (verbose)
+                System.out.printf(
+                    "Stored Route between %s and %s\n",
+                        ((Port) database.retrieve("PORT",start)).NAME,
+                        ((Port) database.retrieve("PORT",end)).NAME
+                );
 
             if (visited.size()>1) {
-                int randomVisited = rand.nextInt(visited.size()-1);
-                int randP = visited.get(randomVisited);
+
+                int randP = visited.get(rand.nextInt(visited.size()-1));
                 Route r3 = new Route(end, randP);
                 Route r4 = new Route(randP, end);
-                routeCount+=2;
+                routeCount += 2;
                 database.store(r3);
                 database.store(r4);
-                routeCount+=2;
-                System.out.printf(
-                        "Stored Route between %s and %s\n",
-                        ((Port) database.retrieve("PORT",end)).NAME,
-                        ((Port) database.retrieve("PORT",randP)).NAME
-                );
+                if (verbose) {
+                    System.out.printf(
+                            "Stored Route between %s and %s\n",
+                            ((Port) database.retrieve("PORT", end)).NAME,
+                            ((Port) database.retrieve("PORT", randP)).NAME
+                    );
+                }
             }
 
             visited.add(end);
-
         }
 
         // Finally, generate Routes until globality is reached.
@@ -333,18 +329,21 @@ public class TMPGenerator {
             int port1 = visited.get(rand.nextInt(visited.size()));
             int port2 = visited.get(rand.nextInt(visited.size()));
             if (!Port.areConnected(port1,port2,database)
-            &&  !Port.areConnected(port2,port1,database)) {
+            &&  !Port.areConnected(port2,port1,database)
+            && port1 != port2) {
                 Route r1 = new Route(port1, port2);
                 Route r2 = new Route(port2, port1);
-                routeCount += 2;
                 database.store(r1);
                 database.store(r2);
                 routeCount+=2;
-                System.out.printf(
-                        "Stored Route between %s and %s\n",
-                        ((Port) database.retrieve("PORT",port1)).NAME,
-                        ((Port) database.retrieve("PORT",port2)).NAME
-                );
+
+                if (verbose) {
+                    System.out.printf(
+                            "Stored Route between %s and %s\n",
+                            ((Port) database.retrieve("PORT", port1)).NAME,
+                            ((Port) database.retrieve("PORT", port2)).NAME
+                    );
+                }
             }
         }
     }
@@ -376,6 +375,7 @@ public class TMPGenerator {
         if (minCosts <= 0) {minCosts = 1;}
         if (maxCosts >  6) {maxCosts = 6;}
 
+
         Map<Integer,TMPObject> routes = database.retrieveAll("ROUTE");
         Random rand = new Random();
 
@@ -388,18 +388,24 @@ public class TMPGenerator {
             Route r = (Route) e.getValue();
             Port start =
                     r.retrieveStartPort(database);
-            ArrayList<Integer> invs = new ArrayList<Integer>(
-                    start.retrievePortInventories(database).keySet());
+            Map<Integer,PortInventory> inventories =
+                    start.retrievePortInventories(database);
+            ArrayList<Integer> invIDs =
+                    new ArrayList<>(inventories.keySet());
 
-            for (int cost = 0; cost <= numCosts; cost++) {
-                int index = rand.nextInt(invs.size());
-                PortInventory inv =
-                        (PortInventory) database.retrieve("PORT_INVENTORY",invs.remove(index));
+            for (int cost = 0; cost < numCosts; cost++) {
 
+                // Retrieve a random inventory and remove it from the list
+                int id = invIDs.remove(rand.nextInt(invIDs.size()));
+                PortInventory inv = inventories.get(id);
+
+                // Determine the variables
                 int commodity = inv.COMMODITY_ID;
                 int destWealth = portWealth.get(((Route)e.getValue()).END_PORT);
                 int amount = destWealth - (commodityValues.get(commodity)/2);
                 if (amount <= 0) {amount = destWealth;}
+
+                // Create and store it
                 RouteCost rc = new RouteCost(e.getKey(),commodity, amount);
                 database.store(rc);
 
@@ -459,10 +465,27 @@ public class TMPGenerator {
      * @see #setPortNameFile(String)
      */
     public void generateWorld() {
+        createTables();
+
         generateCommodities();
         generatePorts();
         generatePortInventories();
         generateRoutes();
         generateRouteCosts();
+    }
+
+    /**
+     * Creates all of the tables for the various TMPObjects.
+     */
+    private void createTables() {
+        database.createTable("COMMODITY");
+        database.createTable("PORT");
+        database.createTable("PORT_INVENTORY");
+        database.createTable("ROUTE");
+        database.createTable("ROUTE_COST");
+        database.createTable("MERCHANT");
+        database.createTable("MERCHANT_INVENTORY");
+        database.createTable("VOYAGE");
+        database.createTable("TRANSACTION");
     }
 }

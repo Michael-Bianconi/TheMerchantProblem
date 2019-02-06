@@ -93,12 +93,8 @@ public class Merchant extends TMPObject {
             // Get each field. If there's more than one row, something's wrong.
             ResultSet set = stmt.executeQuery();
             set.next();
-            int costID = set.getInt("ID");
-            int merchantID = set.getInt("MERCHANT_ID");
-            int commodityID = set.getInt("COMMODITY_ID");
-            int amount = set.getInt("AMOUNT");
-            return new MerchantInventory(
-                    costID, merchantID, commodityID, amount);
+            return (MerchantInventory)
+                    TMPFactory.create("MERCHANT_INVENTORY", set);
 
         } catch (SQLException e) {
             return null;
@@ -127,12 +123,10 @@ public class Merchant extends TMPObject {
             // Get each field. If there's more than one row, something's wrong.
             ResultSet set = stmt.executeQuery();
             while (set.next()) {
-                int id = set.getInt("ID");
-                int merchantID = set.getInt("MERCHANT_ID");
-                int commodityID = set.getInt("COMMODITY_ID");
-                int amount = set.getInt("AMOUNT");
-                map.put(id, new MerchantInventory(
-                        id,merchantID,commodityID,amount));
+                MerchantInventory inv = (MerchantInventory) TMPFactory.create(
+                        "MERCHANT_INVENTORY", set);
+
+                map.put(inv.ID(), inv);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -286,6 +280,16 @@ public class Merchant extends TMPObject {
     public boolean canTrade(
             Port port, Commodity com, int amount, TMPDatabase db) {
 
+        if (port == null) {
+            System.out.println("Null port!");
+            return false;
+        }
+
+        if (com == null) {
+            System.out.println("That commodity doesn't exist!");
+            return false;
+        }
+
         PortInventory pInv =
                 port.retrievePortInventoryByCommodity(com.ID, db);
 
@@ -348,6 +352,11 @@ public class Merchant extends TMPObject {
      * @return Returns true if the Merchant can use the Route.
      */
     public boolean canTravel(Route r, TMPDatabase db) {
+
+        if (r == null) {
+            System.out.println("That route doesn't exist!");
+            return false;
+        }
 
         Port start = r.retrieveStartPort(db);
 
