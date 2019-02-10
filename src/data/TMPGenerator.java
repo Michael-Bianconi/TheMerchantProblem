@@ -253,7 +253,7 @@ public class TMPGenerator {
      * list). The other List, unvisited, holds all the other Ports.
      *
      * Randomly select Ports in the unvisited List. Once selected,
-     * create a Route between that Port, the <i>last></i> Port
+     * create a Route between that Port, the <i>last</i> Port
      * in the visited List. Then, create a different Route
      * with a random Port in the visited List. Finally, move the
      * unvisited Port into the visited List. Repeat until all Ports have
