@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Objects;
 
 /**
  * The Merchant travels between Ports using Routes. Routes may have
@@ -57,6 +56,7 @@ public class Route extends TMPObject {
         // Initialize variables
         String sqlCommand = "SELECT * FROM " + TMPFactory.tableName("ROUTE_COST") +
                 " WHERE ROUTE_ID="+ID+";";
+
         HashMap<Integer, RouteCost> map = new HashMap<>();
         Connection conn = db.getConnection();
 
@@ -67,12 +67,9 @@ public class Route extends TMPObject {
             ResultSet set = stmt.executeQuery();
             while (set.next()) {
 
-                int id = set.getInt("ID");
-                int pID = set.getInt("ROUTE_ID");
-                int cID = set.getInt("COMMODITY_ID");
-                int amount = set.getInt("AMOUNT");
-
-                map.put(id, new RouteCost(id,pID,cID,amount));
+                RouteCost cost =
+                        (RouteCost) TMPFactory.create("ROUTE_COST", set);
+                map.put(cost.ID(), cost);
             }
         } catch (SQLException e) {
             e.printStackTrace();
